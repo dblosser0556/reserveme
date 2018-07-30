@@ -1,16 +1,38 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
-import { AppComponent } from './app.component';
+import { HttpClientModule } from '@angular/common/http';
+import { HttpClientInMemoryWebApiModule} from 'angular-in-memory-web-api';
+import { AppComponent } from './components/app/app.component';
+import { ClarityModule } from '@clr/angular';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { InMemoryDataService } from './services/inmemory.service';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MessagesComponent } from './components/messages/messages.component';
+import { HomeComponent, LoginFormComponent, HeaderComponent } from './components';
+import { routing } from './app.routing';
+import { MemberService } from './services';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    MessagesComponent,
+    HomeComponent,
+    LoginFormComponent,
+    HeaderComponent,
+    PageNotFoundComponent
   ],
   imports: [
-    BrowserModule
+    HttpClientModule,
+    HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService),
+    BrowserModule,
+    ClarityModule,
+    FormsModule,
+    ReactiveFormsModule,
+    BrowserAnimationsModule,
+    routing
   ],
-  providers: [],
+  providers: [MemberService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
