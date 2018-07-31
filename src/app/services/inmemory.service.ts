@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 export class InMemoryDataService implements InMemoryDbService {
     createDb() {
         const facilities = [
-            { id: 1, name: 'Windstorm', startTime: 360, endTime: 1080 }
+            { id: 1, facilityName: 'Windstorm', startTime: 360, endTime: 1080 }
 
         ];
 

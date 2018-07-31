@@ -1,13 +1,16 @@
 <clr-header class="header-5">
   <div class="branding">
     <a href="" routerLink="/login" class="nav-link">
-      <span class="title">SimplePM</span>
+      <span class="title">Reserve Me</span>
     </a>
   </div>
-  
-  <div *ngIf="status" class="header-nav" [clr-nav-level]="1">
-    <a href="..." routerLink="/dashboard" class="nav-link">
-      <span class="nav-text">Dashboard</span>
+
+  <div *ngIf="status && facilityStatus" class="header-nav" [clr-nav-level]="1">
+    <a href="..." routerLink="/userHome" class="nav-link">
+      <span class="nav-text">{{currentFacility.facilityName}}</span>
+    </a>
+    <a href="..." routerLink="/userHome" class="nav-link">
+      <span class="nav-text">{{currentUser.lastName}}</span>
     </a>
     <a *ngIf="currentUserIsAdmin()" href="..." routerLink="/configuration" class="nav-link">
       <span class="nav-text">Configuration</span>

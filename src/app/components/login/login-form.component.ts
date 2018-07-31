@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl } from
 
 import { MemberService } from '../../services/member.service';
 import { HttpErrorResponse } from '@angular/common/http/src/response';
+import { FacilityService } from '../../services/facility.service';
 
 export interface UserLogin {
   userName: string;
@@ -29,6 +30,7 @@ export class LoginFormComponent implements OnInit {
   loginForm: FormGroup;
 
   constructor(private memberService: MemberService,
+    private facilityService: FacilityService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private fb: FormBuilder) { }
@@ -52,12 +54,13 @@ export class LoginFormComponent implements OnInit {
 
     this.memberService.login(user.userName, user.password)
       .subscribe(result => {
-
-
-
-        this.isRequesting = false;
-        this.router.navigate(['/home']);
-
+        const member = result;
+        this.facilityService.getOne(member.facilityId)
+          .subscribe(facility => {
+            this.isRequesting = false;
+            this.router.navigate(['/home']);
+          }
+        );
       },
         error => {
           this.errors = error;

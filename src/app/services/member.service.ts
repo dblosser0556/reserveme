@@ -24,7 +24,7 @@ export class MemberService {
 
 
   private log(message: string) {
-    this.messageService.add('MemberService:  ${message}');
+    this.messageService.add(`MemberService:  ${message}`);
   }
 
   getMembers(): Observable<Member[]> {
@@ -40,20 +40,23 @@ export class MemberService {
     return this.http.get<Member>(url).pipe(
       map(results => {
         this.loggedInUser = new Member();
-        this.loggedInUser = results;
+        this.loggedInUser = Object.assign(new Member(), results[0]);
         this.loggedIn = true;
         return this.loggedInUser;
       }
       ),
-      tap(_ => this.log(`fetched member "${userName}"`)),
-      catchError(this.handleError<Member>('login userName=${userName}')
+      tap(_ => {
+        this.log(`fetched member "${userName}"`);
+        this._authNavStatusSource.next(true);
+        }),
+      catchError(this.handleError<Member>(`login userName=${userName}`)
       ));
   }
 
   logOut() {
     this.loggedInUser = null;
     this.loggedIn = false;
-    this._authNavStatusSource.next(true);
+    this._authNavStatusSource.next(false);
   }
 
   isLoggedIn() {
