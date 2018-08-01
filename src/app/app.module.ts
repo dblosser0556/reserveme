@@ -12,6 +12,8 @@ import { HomeComponent, LoginFormComponent, HeaderComponent } from './components
 import { routing } from './app.routing';
 import { MemberService } from './services';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { CalendarHeaderComponent } from './components/calendar-header/calendar-header.component';
+import { CalendarDayTabsComponent } from './components/calendar-day-tabs/calendar-day-tabs.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,9 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
     HomeComponent,
     LoginFormComponent,
     HeaderComponent,
-    PageNotFoundComponent
+    PageNotFoundComponent,
+    CalendarHeaderComponent,
+    CalendarDayTabsComponent
   ],
   imports: [
     HttpClientModule,

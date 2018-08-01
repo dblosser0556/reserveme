@@ -1,0 +1,17 @@
+<div style="text-align: center">
+  <div class="pagination" *ngIf="!isLoading">
+    <a (click)="yearSub()">
+      <clr-icon shape="angle-double left"></clr-icon>
+    </a>
+    <a (click)="monthSub()">
+      <clr-icon shape="angle left"></clr-icon>
+    </a>
+    <a>{{currentMonth.format("MMM - YYYY")}}</a>
+    <a (click)="monthAdd()">
+      <clr-icon shape="angle right"></clr-icon>
+    </a>
+    <a (click)="yearAdd()">
+      <clr-icon shape="angle-double right"></clr-icon>
+    </a>
+  </div>
+</div>

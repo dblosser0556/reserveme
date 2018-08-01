@@ -1,0 +1,22 @@
+<div *ngIf="!isLoading">
+  <!--
+  <div class="btn-group btn-sm">
+    <div class="radio btn" *ngFor="let day of days; let i = index">
+      <input type="radio" name="btn-group-demo-radios" [id]="'btn-demo-radio-'+ i">
+      <label [for]="'btn-demo-radio-' + i">{{day | date: 'dd'}}</label>
+    </div>
+  </div>
+-->
+  <clr-tabs>
+      <clr-tab *ngFor="let day of days; let i = index">
+          <button clrTabLink [id]="'id'+i">{{day | date:'dd'}}</button>
+          <clr-tab-content [id]="'id'+i" *clrIfActive>
+            {{day | date: 'MMM-dd-yyyy'}}
+          </clr-tab-content>
+      </clr-tab>
+  </clr-tabs>
+  <!--
+  <a clrVerticalNavLink routerLink="./charmander" routerLinkActive="active" *ngFor="let day of days; let i = index">{{day | date:'dd'}}</a>
+  -->
+  
+</div>
