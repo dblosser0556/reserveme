@@ -10,7 +10,7 @@ import { MessageService } from './message.service';
 export class ResourceService extends AbstractRestService<Resource> {
 
   constructor(http: HttpClient, message: MessageService) {
-    const apiUrl = 'api';
-    super(http, message, apiUrl, 'facility');
+    const apiUrl = 'api/resources';
+    super(http, message, apiUrl, 'resources');
   }
 }

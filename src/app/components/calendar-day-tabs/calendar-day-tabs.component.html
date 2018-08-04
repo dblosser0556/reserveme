@@ -8,10 +8,10 @@
   </div>
 -->
   <clr-tabs>
-      <clr-tab *ngFor="let day of days; let i = index">
-          <button clrTabLink [id]="'id'+i">{{day | date:'dd'}}</button>
+      <clr-tab *ngFor="let resource of resources; let i = index">
+          <button clrTabLink [id]="'id'+i">{{resource.resourceName}}</button>
           <clr-tab-content [id]="'id'+i" *clrIfActive>
-            {{day | date: 'MMM-dd-yyyy'}}
+            {{resource.resourceName}}
           </clr-tab-content>
       </clr-tab>
   </clr-tabs>

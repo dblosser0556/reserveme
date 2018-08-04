@@ -8,7 +8,7 @@ import { MemberService } from './member.service';
 export abstract class AbstractRestService<T> {
     private httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-      };
+    };
 
     constructor(protected http: HttpClient,
         protected messageService: MessageService,
@@ -23,16 +23,20 @@ export abstract class AbstractRestService<T> {
     getAll(): Observable<T[]> {
         return this.http.get<T[]>(this.actionURL)
             .pipe(
+                map(results => {console.log('results');
+                    return results; }),
                 tap(results => this.log(`fetched ${this.message}`)),
                 catchError(this.handleError('getAll', []))
             );
     }
 
+
+
     getOne(id: number): Observable<T> {
         const url = `$(this.actionURL)/${id}`;
         return this.http.get<T>(url).pipe(
             tap(_ => this.log('fetched ${message} id=${id}')),
-            catchError(this.handleError<T>(`getOne ${this.message} id=${id}` ))
+            catchError(this.handleError<T>(`getOne ${this.message} id=${id}`))
         );
     }
     /**

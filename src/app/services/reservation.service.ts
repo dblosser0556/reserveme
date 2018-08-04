@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Reservation } from '../models';
 import { HttpClient } from '@angular/common/http';
-import { MessageService } from 'src/app/services';
+import { MessageService } from './message.service';
 import { AbstractRestService } from './abstract.service';
 
 @Injectable({

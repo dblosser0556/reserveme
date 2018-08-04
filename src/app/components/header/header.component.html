@@ -10,7 +10,7 @@
       <span class="nav-text">{{currentFacility.facilityName}}</span>
     </a>
     <a href="..." routerLink="/userHome" class="nav-link">
-      <span class="nav-text">{{currentUser.lastName}}</span>
+      <span class="nav-text">{{currentUser}}</span>
     </a>
     <a *ngIf="currentUserIsAdmin()" href="..." routerLink="/configuration" class="nav-link">
       <span class="nav-text">Configuration</span>

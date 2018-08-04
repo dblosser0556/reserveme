@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MemberService } from '../../services';
+import { AuthService, FacilityService } from '../../services';
 import { Subscription } from 'rxjs';
 
 import { Router } from '@angular/router';
 import { Member, Facility } from '../../models';
-import { FacilityService } from '../../services/facility.service';
+import {  } from '../../services/facility.service';
 
 @Component({
   selector: 'app-header',
@@ -17,10 +17,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   sideBarActive: boolean;
   subLoginStatus: Subscription;
   subFacilityStatus: Subscription;
-  currentUser: Member = null;
+  currentUser: string = null;
   currentFacility: Facility = null;
 
-  constructor(private user: MemberService, private facilityService: FacilityService,
+  constructor(private user: AuthService, private facilityService: FacilityService,
     private router: Router) { }
 
   ngOnInit() {
@@ -29,7 +29,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.status = status;
         if (status) {
 
-          this.currentUser = this.user.currentUser();
+            this.currentUser = this.user.userName;
 
         }
       });
@@ -45,15 +45,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout() {
-    this.user.logOut();
+    this.user.logout();
     this.router.navigate(['/login']);
   }
 
   currentUserIsAdmin(): boolean {
-    return this.user.hasRole('admin');
+    return this.user.isAdmin;
   }
 
   ngOnDestroy() {
     this.subLoginStatus.unsubscribe();
+    this.subFacilityStatus.unsubscribe();
   }
 }

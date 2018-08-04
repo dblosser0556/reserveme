@@ -5,6 +5,8 @@ import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl } from
 import { MemberService } from '../../services/member.service';
 import { HttpErrorResponse } from '@angular/common/http/src/response';
 import { FacilityService } from '../../services/facility.service';
+import { AuthService } from '../../services';
+import { first } from 'rxjs/operators';
 
 export interface UserLogin {
   userName: string;
@@ -29,7 +31,7 @@ export class LoginFormComponent implements OnInit {
 
   loginForm: FormGroup;
 
-  constructor(private memberService: MemberService,
+  constructor(private authService: AuthService,
     private facilityService: FacilityService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
@@ -52,15 +54,10 @@ export class LoginFormComponent implements OnInit {
     this.isRequesting = true;
     this.errors = '';
 
-    this.memberService.login(user.userName, user.password)
+    this.authService.login(user.userName, user.password)
+      .pipe(first())
       .subscribe(result => {
-        const member = result;
-        this.facilityService.getOne(member.facilityId)
-          .subscribe(facility => {
-            this.isRequesting = false;
-            this.router.navigate(['/home']);
-          }
-        );
+        this.router.navigate(['/home']);
       },
         error => {
           this.errors = error;

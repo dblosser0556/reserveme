@@ -2,7 +2,7 @@
 <div class="content-container">
     <div class="content-area">
         <app-calendar-header (changedMonth)="updateMonth($event)"></app-calendar-header>
-        <app-calendar-day-tabs [currentMonth]="currentMonth"></app-calendar-day-tabs>
+        <app-calendar-day-tabs [resources]="resources" [currentMonth]="currentMonth"></app-calendar-day-tabs>
     </div>
 </div>  
 

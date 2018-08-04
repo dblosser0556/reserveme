@@ -1,5 +1,6 @@
 import { Component, OnInit, OnChanges, Input } from '@angular/core';
 import * as moment from 'moment';
+import { Resource } from '../../models';
 
 @Component({
   selector: 'app-calendar-day-tabs',
@@ -8,6 +9,8 @@ import * as moment from 'moment';
 })
 export class CalendarDayTabsComponent implements OnInit, OnChanges {
   @Input() currentMonth: Date;
+  @Input() resources: Resource[];
+
   days: Date[];
   currentDay = 7;
   isLoading = true;
@@ -15,21 +18,15 @@ export class CalendarDayTabsComponent implements OnInit, OnChanges {
   constructor() { }
 
   ngOnInit() {
-   // this.currentMonth = moment();
-  //  this.ngOnChanges();
+    // this.currentMonth = moment();
+    //  this.ngOnChanges();
   }
 
   ngOnChanges() {
     if (this.currentMonth === undefined) {
       this.currentMonth = moment().toDate();
     }
-    const firstOfCurrentMonth = moment(this.currentMonth).startOf('month');
-    this.days = new Array<Date>();
 
-    for (let i = 0; i < firstOfCurrentMonth.daysInMonth(); i++) {
-      const _day = moment(firstOfCurrentMonth).add(i, 'day');
-      this.days.push(_day.toDate());
-    }
     this.isLoading = false;
 
   }
