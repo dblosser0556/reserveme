@@ -1,0 +1,23 @@
+<form novalidate #f="ngForm" (ngSubmit)="onSubmit();">
+    <clr-modal [(clrModalOpen)]="show">
+        <div class="modal-title">Edit user</div>
+
+        <div class="modal-body">
+            <section class="form-block">
+                <div class="form-group ">
+                    <label>First name</label>
+                    <input type="text" name="firstName" autofocus  [(ngModel)]="event.title" placeholder="first name" (keypress)="onKeyPress($event)" required>
+                </div>
+                <div class="form-group ">
+                    <label>Last name</label>
+                    <input type="text" name="lastName"  [(ngModel)]="event.title" placeholder="last name" (keypress)="onKeyPress($event)" required>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal-footer">
+            <button (click)="close()" class="btn btn-default">Cancel</button>
+            <button type="submit" class="btn btn-primary">OK</button>
+        </div>
+    </clr-modal>
+</form>

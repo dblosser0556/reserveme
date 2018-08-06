@@ -4,13 +4,13 @@
       <form class="login" [formGroup]="loginForm" novalidate (ngSubmit)="login()">
         <label class="title">
           <h3 class="welcome">Welcome to</h3>
-          SimplePM
+          Reserve My Court
           <h5 class="hint">Use your Company ID to sign in or create one now</h5>
         </label>
         <div class="login-group">
 
-          <input class="username" type="text" id="login_username" formControlName="userName" placeholder="Username" ngModel>
-          <input class="password" type="password" id="login_password" formControlName="password" placeholder="Password" ngModel>
+          <input class="username" type="text" id="login_username" formControlName="userName" placeholder="Username">
+          <input class="password" type="password" id="login_password" formControlName="password" placeholder="Password">
           <div class="checkbox">
             <input type="checkbox" id="rememberme">
             <label for="rememberme">

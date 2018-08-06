@@ -13,6 +13,7 @@ export class AuthService {
   private _admin: boolean;
   private _userFirstName: string;
   private _userLastName: string;
+  private _loggedIn = false;
 
   private _authNavStatusSource = new BehaviorSubject<boolean>(false);
   // Observable navItem stream
@@ -36,7 +37,7 @@ export class AuthService {
           this._admin = decodedToken.admin;
           this._userFirstName = decodedToken.firstName;
           this._userLastName = decodedToken.lastName;
-
+          this._loggedIn = true;
           console.log('facilityId', this._facilityId);
           localStorage.setItem('access_token', result.token);
           return true;
@@ -44,9 +45,7 @@ export class AuthService {
         tap(_ => {
           this.log(`fetched member "${username}"`);
           this._authNavStatusSource.next(true);
-        }),
-        catchError(this.handleError<boolean>(`login userName=${username}`)
-        ));
+        }));
 
   }
 
@@ -58,7 +57,7 @@ export class AuthService {
   }
 
   public get loggedIn(): boolean {
-    return (localStorage.getItem('access_token') !== null);
+    return this._loggedIn;
   }
 
   public get userFacilityId(): number {
@@ -93,7 +92,7 @@ export class AuthService {
       this.log(`${operation} failed: ${error.message}`);
 
       // Let the app keep running by returning an empty result.
-      return of(result as T);
+      return error;
     };
   }
 

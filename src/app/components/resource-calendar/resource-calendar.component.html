@@ -1,0 +1,49 @@
+<div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center">
+  <div class="col-md-4">
+    <div class="btn-group">
+      <button class="btn btn-primary" (click)="decrement()" [disabled]="prevBtnDisabled">
+        Previous
+      </button>
+      <button class="btn btn-outline-secondary" (click)="today()">
+        Today
+      </button>
+      <button class="btn btn-primary" (click)="increment()" [disabled]="nextBtnDisabled">
+        Next
+      </button>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <h3>{{ viewDate | calendarDate:(view + 'ViewTitle'):'en' }}</h3>
+  </div>
+  <div class="col-md-4">
+    <div class="btn-group">
+      <div class="radio btn">
+        <input type="radio" name="btn-group-view-choice" id="btn-group-view-choice-1" (click)="changeView('month')" [class.active]="view === 'month'">
+        <label for="btn-group-view-choice-1">Month</label>
+      </div>
+      <div class="radio btn">
+        <input type="radio" name="btn-group-view-choice" id="btn-group-view-choice-2" (click)="changeView('week')" [class.active]="view === 'week'">
+        <label for="btn-group-view-choice-2">Week</label>
+      </div>
+      <div class="radio btn">
+        <input type="radio" name="btn-group-view-choice" id="btn-group-view-choice-3" (click)="changeView('day')" [class.active]="view === 'day'">
+        <label for="btn-group-view-choice-3">Day</label>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div [ngSwitch]="view">
+  <mwl-calendar-month-view *ngSwitchCase="'month'" [activeDayIsOpen]="activeDayIsOpen" [viewDate]="viewDate" [events]="events"
+    [refresh]="refresh" (dayClicked)="dayClicked($event.day)" (eventClicked)="handleEvent('View', $event.event)" (beforeViewRender)="beforeMonthViewRender($event)">
+  </mwl-calendar-month-view>
+  <mwl-calendar-week-view *ngSwitchCase="'week'" [viewDate]="viewDate" [events]="events" [refresh]="refresh" (eventClicked)="handleEvent('View', $event.event)">
+  </mwl-calendar-week-view>
+  <mwl-calendar-day-view *ngSwitchCase="'day'" [viewDate]="viewDate" [events]="events" [refresh]="refresh" (eventClicked)="handleEvent('View', $event.event)"
+    [dayStartHour]="facility.startHour" [dayEndHour]="facility.endHour">
+  </mwl-calendar-day-view>
+</div>
+
+<app-edit-reservation-dialog></app-edit-reservation-dialog>

@@ -35,7 +35,7 @@ export abstract class AbstractRestService<T> {
     getOne(id: number): Observable<T> {
         const url = `$(this.actionURL)/${id}`;
         return this.http.get<T>(url).pipe(
-            tap(_ => this.log('fetched ${message} id=${id}')),
+            tap(_ => this.log(`fetched ${this.message} id=${id}`)),
             catchError(this.handleError<T>(`getOne ${this.message} id=${id}`))
         );
     }

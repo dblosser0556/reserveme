@@ -12,8 +12,11 @@ import { MemberService, AuthService, FacilityService, ResourceService, Reservati
 import { AuthGuard} from './guard/auth.guard';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { CalendarHeaderComponent } from './components/calendar-header/calendar-header.component';
-import { CalendarDayTabsComponent } from './components/calendar-day-tabs/calendar-day-tabs.component';
+import { ResourceTabsComponent } from './components/resource-tabs/resource-tabs.component';
+import { ResourceCalendarComponent } from './components/resource-calendar/resource-calendar.component';
+import { CalendarModule } from 'angular-calendar';
 import { JwtModule} from '@auth0/angular-jwt';
+import { EditReservationDialogComponent } from './components/edit-reservation-dialog/edit-reservation-dialog.component';
 
 export function tokenGetter() {
   return localStorage.getItem('access_token');
@@ -28,7 +31,9 @@ export function tokenGetter() {
     HeaderComponent,
     PageNotFoundComponent,
     CalendarHeaderComponent,
-    CalendarDayTabsComponent
+    ResourceTabsComponent,
+    ResourceCalendarComponent,
+    EditReservationDialogComponent
   ],
   imports: [
     HttpClientModule,
@@ -37,6 +42,7 @@ export function tokenGetter() {
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
+    CalendarModule.forRoot(),
     routing,
     JwtModule.forRoot({
       config: {

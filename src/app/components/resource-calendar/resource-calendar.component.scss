@@ -1,0 +1,8 @@
+.cal-disabled {
+  background-color: rgb(250, 243, 243);
+  pointer-events: none;
+}
+
+.cal-disabled .cal-day-number {
+  opacity: 0.8;
+}

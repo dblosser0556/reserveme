@@ -1,0 +1,20 @@
+<div *ngIf="isLoading">
+  <span class="spinner spinner-inline">
+    Loading...
+  </span>
+  <span>
+    Loading...
+  </span>
+</div>
+<div *ngIf="!isLoading">
+  <clr-tabs>
+    <clr-tab *ngFor="let resource of resources; let i = index">
+      <button clrTabLink [id]="'id'+i">{{resource.resourceName}}</button>
+
+      <clr-tab-content *clrIfActive>
+        <app-resource-calendar [resourceId]="resource.id" [facility]="facility"></app-resource-calendar>
+      </clr-tab-content>
+
+    </clr-tab>
+  </clr-tabs>
+</div>

@@ -1,6 +1,10 @@
 export class Facility {
     id: number;
-    facilityName: string;
-    facilityStartTime: number;
-    facilityEndTime: number;
+    name: string;
+    startHour: number;
+    endHour: number;
+    memberMaxReservationDays: number;
+    memberMaxReserviationsPer: number;
+    memberMaxReservationPerDay: number;
+    adminMaxReservationDays: number;
 }
