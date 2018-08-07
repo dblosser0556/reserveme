@@ -1,23 +1,49 @@
-<form novalidate #f="ngForm" (ngSubmit)="onSubmit();">
-    <clr-modal [(clrModalOpen)]="show">
-        <div class="modal-title">Edit user</div>
+<form novalidate name="eventForm" (ngSubmit)="onSubmit();">
+  <clr-modal [(clrModalOpen)]="show">
+    <div class="modal-title">Edit user</div>
 
-        <div class="modal-body">
-            <section class="form-block">
-                <div class="form-group ">
-                    <label>First name</label>
-                    <input type="text" name="firstName" autofocus  [(ngModel)]="event.title" placeholder="first name" (keypress)="onKeyPress($event)" required>
-                </div>
-                <div class="form-group ">
-                    <label>Last name</label>
-                    <input type="text" name="lastName"  [(ngModel)]="event.title" placeholder="last name" (keypress)="onKeyPress($event)" required>
-                </div>
-            </section>
+    <div class="modal-body">
+      <section class="form-block">
+        <div class="form-group ">
+          <label>Title</label>
+          <input type="text" name="title" formControlName="title" placeholder="Title" required disabled>
         </div>
+        <div class="form-group ">
+          <label class="required">Date</label>
+          <label for="eventDate" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="eventDate.invalid
+                && (eventDate.dirty || eventDate.touched)">
+            <input id="eventDate" type="date" autofocus size="25" formControlName="eventDate" placeholder="date" required>
+            <span class="tooltip-content">
+              Date is required!
+            </span>
+          </label>
+        </div>
+        <div class="form-group ">
+          <label class="required">Start Time</label>
+          <label for="startTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="startTime.invalid
+                      && (startTime.dirty || startTime.touched)">
+            <input id="startTime" type="date" autofocus size="25" formControlName="startTime" placeholder="select start time" required>
+            <span class="tooltip-content">
+              Start Time is required!
+            </span>
+          </label>
+        </div>
+        <div class="form-group ">
+          <label class="required">End Time</label>
+          <label for="endTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="endTime.invalid
+                            && (endTime.dirty || endTime.touched)">
+            <input id="endTime" type="date" autofocus size="25" formControlName="endTime" placeholder="select end time" required>
+            <span class="tooltip-content">
+              End Time is required!
+            </span>
+          </label>
+        </div>
+      </section>
+    </div>
 
-        <div class="modal-footer">
-            <button (click)="close()" class="btn btn-default">Cancel</button>
-            <button type="submit" class="btn btn-primary">OK</button>
-        </div>
-    </clr-modal>
+    <div class="modal-footer">
+      <button (click)="close()" class="btn btn-default">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="!eventForm.valid">OK</button>
+    </div>
+  </clr-modal>
 </form>
