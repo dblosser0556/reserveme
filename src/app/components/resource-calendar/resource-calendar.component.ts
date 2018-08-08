@@ -110,6 +110,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   detailsData: {
     action: string;
+    facilityId: number;
+    resourceId: number;
     memberName: string;
     event: CalendarEvent;
   };
@@ -243,7 +245,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   handleEvent(action: string, event: CalendarEvent): void {
     const userName = this.auth.userName;
-    this.detailsData = { action: action, memberName: userName, event: event };
+    this.detailsData = { action: action, facilityId: this.facility.id, resourceId: this.resourceId, memberName: userName, event: event };
     this.modal.open(this.detailsData);
   }
 
@@ -296,6 +298,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
                 break;
             }
             const event: CalendarEvent = {
+              id: reservation.id,
               title: reservation.title,
               start: new Date(reservation.startDateTime),
               end: new Date(reservation.endDateTime),

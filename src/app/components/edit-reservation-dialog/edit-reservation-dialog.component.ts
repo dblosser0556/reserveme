@@ -10,6 +10,8 @@ import { ReservationService } from '../../services';
 export interface DetailsData {
   action: string;
   memberName: string;
+  facilityId: number;
+  resourceId: number;
   event: CalendarEvent;
 }
 
@@ -27,6 +29,13 @@ export class EditReservationDialogComponent implements OnChanges {
   show = false;
 
   event: CalendarEvent;
+  action: string;
+  memberName: string;
+  resourceId: number;
+  facilityId: number;
+
+  availableStartTimes: string[] = [];
+  availableEndTimes: string[] = [];
 
   constructor(private fb: FormBuilder, private resService: ReservationService) {
     this.createForm();
@@ -39,17 +48,26 @@ export class EditReservationDialogComponent implements OnChanges {
     this.eventForm.reset({
       id: this.event.id,
       title: this.event.title,
-      date: date,
+      eventDate: date,
       startTime: startTime,
       endTime: endTime
     });
   }
 
   open(detailsData: DetailsData) {
-    this.show = true;
+
+
     this.event = detailsData.event;
-    this.availableTimes = getAvailableTimes()  //start here
+    this.memberName = detailsData.memberName;
+    this.action = detailsData.action;
+    this.facilityId = detailsData.facilityId;
+    this.resourceId = detailsData.resourceId;
+
+    this.availableEndTimes = this.getAvailableStartTimes();  // start here
+
     this.ngOnChanges();
+
+    this.show = true;
 
     setTimeout(() => {
       if (this.autofocus) {
@@ -73,14 +91,36 @@ export class EditReservationDialogComponent implements OnChanges {
     this.onOK.emit(event);
   }
 
+  // update the event title based on the user and times.
+  updateTitle(event$: Event): void {
+    const title = this.memberName + ' ' + this.startTime.value + ' ' + this.endTime.value;
+    this.title.setValue(title);
+  }
+
+
   createForm() {
     this.eventForm = this.fb.group({
       id: '',
-      title: '',
-      date: ['', Validators.required],
+      title: [{ value: '', disabled: true }],
+      eventDate: ['', Validators.required],
       startTime: ['', Validators.required],
       endTime: ['', Validators.required]
     });
+  }
+
+  get title() {
+    return this.eventForm.get('title');
+  }
+  get eventDate() {
+    return this.eventForm.get('eventDate');
+  }
+
+  get startTime() {
+    return this.eventForm.get('startTime');
+  }
+
+  get endTime() {
+    return this.eventForm.get('endTime');
   }
 
   getMinutes(hour: string): number {
@@ -98,6 +138,17 @@ export class EditReservationDialogComponent implements OnChanges {
       end: endTime
     };
     return event;
+  }
+
+  getAvailableStartTimes(): string[] {
+    const startTimes = new Array<string>();
+    this.resService.getAvailableTimes(this.resourceId, )
+    return startTimes;
+  }
+
+  getAvailableEndTimes(startTime: string): string[] {
+    const endTimes = new Array<string>();
+    return endTimes;
   }
 }
 

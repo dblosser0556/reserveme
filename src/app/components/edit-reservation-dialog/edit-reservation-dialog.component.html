@@ -1,6 +1,6 @@
-<form novalidate name="eventForm" (ngSubmit)="onSubmit();">
+<form novalidate name="eventForm" [formGroup]="eventForm" (ngSubmit)="onSubmit();">
   <clr-modal [(clrModalOpen)]="show">
-    <div class="modal-title">Edit user</div>
+    <div class="modal-title">{{action}}</div>
 
     <div class="modal-body">
       <section class="form-block">
@@ -12,7 +12,7 @@
           <label class="required">Date</label>
           <label for="eventDate" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="eventDate.invalid
                 && (eventDate.dirty || eventDate.touched)">
-            <input id="eventDate" type="date" autofocus size="25" formControlName="eventDate" placeholder="date" required>
+            <input id="eventDate" type="date" autofocus size="25" formControlName="eventDate" placeholder="date" required (onblur)="updateTitle">
             <span class="tooltip-content">
               Date is required!
             </span>
@@ -22,7 +22,7 @@
           <label class="required">Start Time</label>
           <label for="startTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="startTime.invalid
                       && (startTime.dirty || startTime.touched)">
-            <input id="startTime" type="date" autofocus size="25" formControlName="startTime" placeholder="select start time" required>
+            <input id="startTime" type="text" autofocus size="25" formControlName="startTime" placeholder="select start time" required (onblur)="updateTitle">
             <span class="tooltip-content">
               Start Time is required!
             </span>
@@ -32,7 +32,7 @@
           <label class="required">End Time</label>
           <label for="endTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="endTime.invalid
                             && (endTime.dirty || endTime.touched)">
-            <input id="endTime" type="date" autofocus size="25" formControlName="endTime" placeholder="select end time" required>
+            <input id="endTime" type="text" autofocus size="25" formControlName="endTime" placeholder="select end time" required (onblur)="updateTitle">
             <span class="tooltip-content">
               End Time is required!
             </span>
@@ -43,7 +43,8 @@
 
     <div class="modal-footer">
       <button (click)="close()" class="btn btn-default">Cancel</button>
-      <button type="submit" class="btn btn-primary" [disabled]="!eventForm.valid">OK</button>
+      
+      <button *ngIf="action=='Edit'"type="submit" class="btn btn-primary" [disabled]="!eventForm.valid">OK</button>
     </div>
   </clr-modal>
 </form>

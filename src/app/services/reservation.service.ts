@@ -32,5 +32,19 @@ export class ReservationService extends AbstractRestService<Reservation> {
       catchError(this.handleError<Reservation[]>(`getOne ${this.message} id=${resourceId}`))
     );
 
+
+
+  }
+  getAvailableTimes(resourceId: number, date: Date): Observable<string[]> {
+    const _resourceId = resourceId.toString();
+    const _date = moment(date).format('YYYY-MM-DD');
+    const params = new HttpParams()
+      .set('resourceId', _resourceId)
+      .set('reservationDate', _date);
+    const url = 'api/times';
+    return this.http.get<string[]>(url, { params }).pipe(
+      tap(_ => this.log(`fetched ${this.message} id=${resourceId}`)),
+      catchError(this.handleError<string[]>(`getOne ${this.message} id=${resourceId}`))
+    );
   }
 }
