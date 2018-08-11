@@ -1,4 +1,4 @@
-<div class="row" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center">
+<div class="row text-center" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center">
   <div class="col-md-4">
     <div class="btn-group">
       <button class="btn btn-primary" (click)="decrement()" [disabled]="prevBtnDisabled">
@@ -45,5 +45,14 @@
     [dayStartHour]="facility.startHour" [dayEndHour]="facility.endHour">
   </mwl-calendar-day-view>
 </div>
+<div>
 
-<app-edit-reservation-dialog></app-edit-reservation-dialog>
+    <button
+      class="btn btn-primary pull-right"
+      (click)="addEvent()">
+      Add new
+    </button>
+    <div class="clearfix"></div>
+</div>
+  
+<app-edit-reservation-dialog (onOK)="saveEvent($event)"></app-edit-reservation-dialog>

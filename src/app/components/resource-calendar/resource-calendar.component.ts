@@ -15,10 +15,12 @@ import {
   endOfDay,
   isToday,
   isSameMonth,
-  isSameDay
+  isSameDay,
+  addMinutes,
+  format
 } from 'date-fns';
-import { ReservationService, FacilityService, AuthService } from '../../services';
-import { Reservation, Facility } from '../../models';
+import { ReservationService, FacilityService, AuthService, ResourceService } from '../../services';
+import { Reservation, Facility, Resource } from '../../models';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EditReservationDialogComponent } from '../edit-reservation-dialog/edit-reservation-dialog.component';
 
@@ -74,12 +76,12 @@ function endOfPeriod(period: CalendarPeriod, date: Date): Date {
 
 @Component({
   selector: 'app-resource-calendar',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './resource-calendar.component.html',
   styleUrls: ['./resource-calendar.component.scss'],
 
 })
 export class ResourceCalendarComponent implements OnInit, AfterViewInit {
+
   private _resourceId = new BehaviorSubject<number>(undefined);
   private _facility = new BehaviorSubject<Facility>(undefined);
 
@@ -99,6 +101,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   get facility() {
     return this._facility.getValue();
   }
+  resource: Resource;
 
   isLoading: boolean;
 
@@ -136,29 +139,33 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     {
       label: '<i class="fa fa-fw fa-pencil">e</i>',
       onClick: ({ event }: { event: CalendarEvent }): void => {
-        this.handleEvent('Edited', event);
+        this.handleEvent('Edit', event);
       }
     },
     {
       label: '<i class="fa fa-fw fa-times">d</i>',
       onClick: ({ event }: { event: CalendarEvent }): void => {
         this.events = this.events.filter(iEvent => iEvent !== event);
-        this.handleEvent('Deleted', event);
+        this.handleEvent('Delete', event);
       }
     }
   ];
 
   refresh: Subject<any> = new Subject();
 
-  constructor(private reservationService: ReservationService, private auth: AuthService) {
+  constructor(private reservationService: ReservationService, private auth: AuthService,
+    private resourceService: ResourceService) {
 
   }
 
   ngOnInit() {
     this.isLoading = true;
 
-    this._resourceId.subscribe(x => {
-      if (x !== undefined) {
+    this._resourceId.subscribe(resourceId => {
+      if (resourceId !== undefined) {
+
+        this.getResource(resourceId);
+
         if (this.facility !== undefined) {
           this.startUp();
         }
@@ -172,6 +179,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
         }
       }
     });
+
   }
 
   ngAfterViewInit(): void {
@@ -193,6 +201,11 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     this.dateOrViewChanged();
   }
 
+  getResource(resourceId: number) {
+    this.resourceService.getOne(resourceId).subscribe(
+      results => this.resource = results
+    );
+  }
   increment(): void {
     this.changeDate(addPeriod(this.view, this.viewDate, 1));
   }
@@ -323,6 +336,50 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     this.openDetails = false;
   }
 
+  addEvent(event$: any) {
+
+    let _start = startOfDay(new Date());
+    _start = addMinutes(_start, this.facility.startHour * 60);
+    const _end = addMinutes(_start, this.resource.maxReserveTime);
+    const _title = this.auth.userName + ' ' + format(_start, 'hh:mm A') + ' - ' + format(_end, 'hh:mm A');
+    const _event = {
+      start: _start,
+      end: _end,
+      title: _title,
+      id: 0
+    };
+
+    this.handleEvent('Create', _event);
+  }
+
+  saveEvent(event: CalendarEvent) {
+
+    const reservation = {
+      id: Number(event.id),
+      resourceId: this.resourceId,
+      title: event.title,
+      startDateTime: event.start,
+      endDateTime: event.end,
+      type: 1,
+      memberId: this.auth.userId
+    };
+
+    if (reservation.id === 0) {
+      this.reservationService.create(reservation).subscribe(
+        res => {
+          this.dateOrViewChanged();
+        }
+      );
+    } else {
+      this.reservationService.update(reservation.id, reservation).subscribe(
+        res => {
+          this.dateOrViewChanged();
+        }
+      );
+    }
+
+
+  }
 
 }
 

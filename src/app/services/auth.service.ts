@@ -38,7 +38,6 @@ export class AuthService {
           this._userFirstName = decodedToken.firstName;
           this._userLastName = decodedToken.lastName;
           this._loggedIn = true;
-          console.log('facilityId', this._facilityId);
           localStorage.setItem('access_token', result.token);
           return true;
         }),

@@ -33,10 +33,32 @@ export abstract class AbstractRestService<T> {
 
 
     getOne(id: number): Observable<T> {
-        const url = `$(this.actionURL)/${id}`;
+        const url = `${this.actionURL}/${id}`;
         return this.http.get<T>(url).pipe(
             tap(_ => this.log(`fetched ${this.message} id=${id}`)),
             catchError(this.handleError<T>(`getOne ${this.message} id=${id}`))
+        );
+    }
+
+    create(body: T): Observable<any> {
+        const _body = JSON.stringify(body);
+        const headerOptions = new HttpHeaders()
+            .set('Content-Type', 'application/json');
+        return this.http.put<T>(this.actionURL, _body, { headers: headerOptions}).pipe(
+            tap(res => this.log(`created ${this.message} id=${res}`)),
+            catchError(this.handleError<any>(`create ${this.message}`))
+        );
+
+    }
+
+    update(id: number, body: T): Observable<any> {
+        const _body = JSON.stringify(body);
+        const headerOptions = new HttpHeaders()
+            .set('Content-Type', 'application/json');
+        const url = `$(this.actionURL)/${id}`;
+        return this.http.post<T>(url, _body, { headers: headerOptions}).pipe(
+            tap(res => this.log(`updated ${this.message} id=${res}`)),
+            catchError(this.handleError<any>(`updated ${this.message} body=${_body}`))
         );
     }
     /**

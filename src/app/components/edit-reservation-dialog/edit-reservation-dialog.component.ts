@@ -6,6 +6,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { interceptingHandler } from '@angular/common/http/src/module';
 import { ReservationService } from '../../services';
+import { Observable } from 'rxjs';
 
 export interface DetailsData {
   action: string;
@@ -33,17 +34,18 @@ export class EditReservationDialogComponent implements OnChanges {
   memberName: string;
   resourceId: number;
   facilityId: number;
-
-  availableStartTimes: string[] = [];
-  availableEndTimes: string[] = [];
+  canEdit = false;
+  availableStartTimes: Observable<string[]>;
+  availableEndTimes: Observable<string[]>;
 
   constructor(private fb: FormBuilder, private resService: ReservationService) {
     this.createForm();
+    console.log('contructed', new Date());
   }
 
   ngOnChanges() {
-    const startTime = moment(this.event.start).format('hh:mm');
-    const endTime = moment(this.event.end).format('hh:mm');
+    const startTime = moment(this.event.start).format('LT');
+    const endTime = moment(this.event.end).format('LT');
     const date = moment(this.event.start).format('YYYY-MM-DD');
     this.eventForm.reset({
       id: this.event.id,
@@ -54,19 +56,28 @@ export class EditReservationDialogComponent implements OnChanges {
     });
   }
 
-  open(detailsData: DetailsData) {
+  async open(detailsData: DetailsData) {
 
 
     this.event = detailsData.event;
     this.memberName = detailsData.memberName;
     this.action = detailsData.action;
+
+    // only allow editing the form if type edited.
+    if (this.action === 'Edit' || this.action === 'Create') {
+      this.canEdit = true;
+    } else {
+      this.canEdit = false;
+    }
     this.facilityId = detailsData.facilityId;
     this.resourceId = detailsData.resourceId;
 
-    this.availableEndTimes = this.getAvailableStartTimes();  // start here
-
+    // this.getAvailableStartTimes();  // start here
+    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event.id.toString(),
+      this.resourceId.toString(), this.event.start);
+    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event.id.toString(),
+      this.resourceId.toString(), this.event.start);
     this.ngOnChanges();
-
     this.show = true;
 
     setTimeout(() => {
@@ -74,6 +85,7 @@ export class EditReservationDialogComponent implements OnChanges {
         this.autofocus.setFocus();
       }
     }, 0.1);
+
   }
 
   close() {
@@ -82,12 +94,13 @@ export class EditReservationDialogComponent implements OnChanges {
 
   onKeyPress(event) {
     if (event.keyCode === 13) {
-      this.onOK.emit(this.event);
+      const _event = this.getEventFromFormValue(this.eventForm);
+      this.onOK.emit(_event);
     }
   }
 
   onSubmit() {
-    const event = this.getEventFromFormValue(this.eventForm);
+    const event = this.getEventFromFormValue(this.eventForm.getRawValue());
     this.onOK.emit(event);
   }
 
@@ -101,7 +114,7 @@ export class EditReservationDialogComponent implements OnChanges {
   createForm() {
     this.eventForm = this.fb.group({
       id: '',
-      title: [{ value: '', disabled: true }],
+      title: [''],
       eventDate: ['', Validators.required],
       startTime: ['', Validators.required],
       endTime: ['', Validators.required]
@@ -123,32 +136,31 @@ export class EditReservationDialogComponent implements OnChanges {
     return this.eventForm.get('endTime');
   }
 
-  getMinutes(hour: string): number {
-    const timepart = hour.split(':');
-    return Number(timepart[0]) * 60 + Number(timepart[1]);
-  }
 
   getEventFromFormValue(formValue: any): CalendarEvent {
-    const startTime = moment(formValue.date).add(this.getMinutes(formValue.startTime), 'minutes').toDate();
-    const endTime = moment(formValue.date).add(this.getMinutes(formValue.endTime), 'minutes').toDate();
+    const startTime = formValue.eventDate + ' ' + formValue.startTime;
+    const endTime = formValue.eventDate + ' ' + formValue.endTime;
+
     const event = {
       id: formValue.id,
       title: formValue.title,
-      start: startTime,
-      end: endTime
+      start: moment(startTime).toDate(),
+      end: moment(endTime).toDate()
     };
     return event;
   }
 
-  getAvailableStartTimes(): string[] {
-    const startTimes = new Array<string>();
-    this.resService.getAvailableTimes(this.resourceId, )
-    return startTimes;
+  async getAvailableStartTimes(event$: any) {
+    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event.id.toString(),
+      this.resourceId.toString(), event$.target.value);
+
   }
 
-  getAvailableEndTimes(startTime: string): string[] {
-    const endTimes = new Array<string>();
-    return endTimes;
+  async getAvailableEndTimes(event$: any) {
+    const endDateTime = this.eventDate.value + ' ' + event$.target.value;
+    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event.id.toString(),
+      this.resourceId.toString(),
+      moment(endDateTime).toDate());
   }
 }
 

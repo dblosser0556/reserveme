@@ -31,20 +31,29 @@ export class ReservationService extends AbstractRestService<Reservation> {
       tap(_ => this.log(`fetched ${this.message} id=${resourceId}`)),
       catchError(this.handleError<Reservation[]>(`getOne ${this.message} id=${resourceId}`))
     );
-
-
-
   }
-  getAvailableTimes(resourceId: number, date: Date): Observable<string[]> {
-    const _resourceId = resourceId.toString();
-    const _date = moment(date).format('YYYY-MM-DD');
+
+  getAvailableStartTimes(reservationId: string, resourecId: string, startDateTime: Date): Observable<string[]> {
     const params = new HttpParams()
-      .set('resourceId', _resourceId)
-      .set('reservationDate', _date);
-    const url = 'api/times';
+      .set('reservationId', reservationId)
+      .set('resourceId', resourecId)
+      .set('startDateTime', moment(startDateTime).format('YYYY-MM-DD'));
+    const url = 'api/starttimes';
     return this.http.get<string[]>(url, { params }).pipe(
-      tap(_ => this.log(`fetched ${this.message} id=${resourceId}`)),
-      catchError(this.handleError<string[]>(`getOne ${this.message} id=${resourceId}`))
+      tap(_ => this.log(`fetched availble times for id=${reservationId}`)),
+      catchError(this.handleError<string[]>(`fetched availble times for id=${reservationId}`))
+    );
+  }
+
+  getAvailableEndTimes(reservationId: string, resourceId: string, startDateTime: Date): Observable<string[]> {
+    const params = new HttpParams()
+      .set('reservationId', reservationId)
+      .set('resourceId', resourceId)
+      .set('startDateTime', moment(startDateTime).format());
+    const url = 'api/endtimes';
+    return this.http.get<string[]>(url, { params }).pipe(
+      tap(_ => this.log(`fetched availble end times for id=${reservationId}`)),
+      catchError(this.handleError<string[]>(`fetched availble end times for id=${reservationId}`))
     );
   }
 }
