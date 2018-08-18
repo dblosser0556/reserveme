@@ -6,10 +6,12 @@ export enum resType {
 }
 export interface Reservation {
     id: number;
+    title: string;
     startDateTime: Date;
     endDateTime: Date;
-    title: string;
     type: resType;
-    resourceId: number;
-    memberId: number;
+    createdAt: Date;
+    updatedAt: Date;
+    ResourceId: number;
+    UserId: number;
 }

@@ -3,7 +3,6 @@ import { AbstractRestService } from './abstract.service';
 import { Facility } from '../models';
 import { HttpClient } from '@angular/common/http';
 import { MessageService } from './message.service';
-import { MemberService } from './member.service';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 
@@ -17,7 +16,7 @@ export class FacilityService extends AbstractRestService<Facility> {
   authNavStatus$: any;
 
   constructor(http: HttpClient, message: MessageService) {
-    const apiUrl = 'api/facilities';
+    const apiUrl = 'v1/facilities';
     super(http, message, apiUrl, 'facility');
     this._authNavStatusSource = new BehaviorSubject<boolean>(false);
     this.authNavStatus$ = this._authNavStatusSource.asObservable();

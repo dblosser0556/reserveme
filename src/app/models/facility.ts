@@ -1,4 +1,4 @@
-export class Facility {
+export interface Facility {
     id: number;
     name: string;
     startHour: number;

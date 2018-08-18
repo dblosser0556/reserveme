@@ -1,9 +1,9 @@
 
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { MessageService } from './message.service';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
-import { MemberService } from './member.service';
+
 
 export abstract class AbstractRestService<T> {
     private httpOptions = {
@@ -21,10 +21,14 @@ export abstract class AbstractRestService<T> {
     }
 
     getAll(): Observable<T[]> {
+
+
         return this.http.get<T[]>(this.actionURL)
             .pipe(
-                map(results => {console.log('results');
-                    return results; }),
+                map(results => {
+                    console.log('results', results);
+                    return results;
+                }),
                 tap(results => this.log(`fetched ${this.message}`)),
                 catchError(this.handleError('getAll', []))
             );
@@ -44,7 +48,7 @@ export abstract class AbstractRestService<T> {
         const _body = JSON.stringify(body);
         const headerOptions = new HttpHeaders()
             .set('Content-Type', 'application/json');
-        return this.http.put<T>(this.actionURL, _body, { headers: headerOptions}).pipe(
+        return this.http.post<T>(this.actionURL, _body, { headers: headerOptions }).pipe(
             tap(res => this.log(`created ${this.message} id=${res}`)),
             catchError(this.handleError<any>(`create ${this.message}`))
         );
@@ -56,7 +60,7 @@ export abstract class AbstractRestService<T> {
         const headerOptions = new HttpHeaders()
             .set('Content-Type', 'application/json');
         const url = `$(this.actionURL)/${id}`;
-        return this.http.post<T>(url, _body, { headers: headerOptions}).pipe(
+        return this.http.post<T>(url, _body, { headers: headerOptions }).pipe(
             tap(res => this.log(`updated ${this.message} id=${res}`)),
             catchError(this.handleError<any>(`updated ${this.message} body=${_body}`))
         );

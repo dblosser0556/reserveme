@@ -5,16 +5,20 @@
     </a>
   </div>
 
-  <div *ngIf="status && facilityStatus" class="header-nav" [clr-nav-level]="1">
+  <div *ngIf="status" class="header-nav" [clr-nav-level]="1">
     <a href="..." routerLink="/userHome" class="nav-link">
       <span class="nav-text">{{currentFacility.name}}</span>
     </a>
     <a href="..." routerLink="/userHome" class="nav-link">
       <span class="nav-text">{{currentUser}}</span>
     </a>
+    <a href="..." routerLink="/calendar" class="nav-link">
+      <span class="nav-text">Calendar</span>
+    </a>
     <a *ngIf="currentUserIsAdmin()" href="..." routerLink="/configuration" class="nav-link">
       <span class="nav-text">Configuration</span>
     </a>
+   
   </div>
   <div *ngIf="!status" class="header-actions">
     <a class="nav-link" href="#" routerLinkActive="active" routerLink="/login">

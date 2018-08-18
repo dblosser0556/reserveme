@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import * as moment from 'moment';
-import { Resource, Facility } from '../../models';
-import { ResourceService, FacilityService, AuthService } from '../../services';
+import { Resource, Facility } from '../../../models';
+import { ResourceService, FacilityService, AuthService } from '../../../services';
 
 @Component({
   selector: 'app-resource-tabs',
@@ -17,7 +17,6 @@ export class ResourceTabsComponent implements OnInit {
   isLoading = true;
 
   constructor(private resourceService: ResourceService,
-    private facilityService: FacilityService,
     private authService: AuthService) { }
 
   ngOnInit() {
@@ -28,17 +27,19 @@ export class ResourceTabsComponent implements OnInit {
   getResources() {
     this.resourceService.getAll()
       .subscribe(results => {
-        this.resources = results;
+        this.resources = [];
+        for (const resource of results['resources']) {
+          this.resources.push(resource);
+        }
+
         this.isLoading = false;
       });
   }
 
   getFacility() {
-    this.facilityService.getOne(this.authService.userFacilityId)
-      .subscribe(results => {
-        this.facility = results;
-        this.getResources();
-      });
+
+    this.facility = this.authService.userFacility;
+    this.getResources();
 
   }
 }

@@ -1,0 +1,31 @@
+<div class="content-container">
+  <main class="content-area">
+    <div style="height:30px">
+      <div style="float:left">
+        <!--<app-breadcrumbs></app-breadcrumbs> -->
+      </div>
+      <div style="float:right">
+        <h4 style="margin-top:0px">{{pageTitle}}</h4>
+      </div>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+
+  <clr-vertical-nav [clrVerticalNavCollapsible]="true">
+
+
+    
+
+    <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/register">
+      <clr-icon clrVerticalNavIcon shape="users"></clr-icon>
+      Register New Users</a>
+
+    <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/role">
+      <clr-icon clrVerticalNavIcon shape="tags"></clr-icon>
+      Define User Roles</a>
+
+    <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/facility">
+      <clr-icon clrVerticalNavIcon shape="info-circle" size="16"></clr-icon>
+      Facility Info</a>
+  </clr-vertical-nav>
+</div>

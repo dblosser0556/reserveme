@@ -1,0 +1,65 @@
+<form class="clr-form login" [formGroup]="userForm" novalidate (ngSubmit)="register()">
+  <clr-modal [(clrModalOpen)]="show" [clrModalSize]="'lg'">
+
+    <div class="modal-title">{{action}}</div>
+    <div class="modal-body">
+      <clr-input-container>
+        <label class="required">First Name</label>
+        <input clrInput type="text" formControlName="firstName" placeholder="First name" required>
+        <clr-control-error>First Name is required!</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label class="required">Last Name</label>
+        <input clrInput type="text" formControlName="lastName" placeholder="last name" required>
+        <clr-control-error>Last Name is required!</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label class="required">Email</label>
+        <input clrInput type="email" formControlName="email" placeholder="email" required>
+        <clr-control-error>Email is required!</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label class="required">Phone</label>
+        <input clrInput type="tel" formControlName="phone" placeholder="phone" required>
+        <clr-control-error>Phone is required!</clr-control-error>
+      </clr-input-container>
+      <clr-password-container>
+        <label class="required">Password</label>
+        <input clrPassword formControlName="password" placeholder="password" required minlength="8">
+        <clr-control-helper>Must contain at least 8 characters with at least one of them a special character like !@#$%^&*)</clr-control-helper>
+        <clr-control-error *clrIfError="required">Password is required!</clr-control-error>
+        <clr-control-error *clrIfError="minlength">Minimum Length is 8</clr-control-error>
+      </clr-password-container>
+
+      <clr-password-container>
+        <label class="required">Password</label>
+        <input clrPassword formControlName="confirmPassword" placeholder="confirm password" required minlength="8">
+        <clr-control-helper>Must contain at least 8 characters with at least one of them a special character like !@#$%^&*)</clr-control-helper>
+        <clr-control-error *clrIfError="required">Password is required!</clr-control-error>
+        <clr-control-error *clrIfError="minlength">Minimum Length is 8</clr-control-error>
+        <clr-control-error *clrIfError="passwordNotEquivalent">Passwords must match</clr-control-error>
+      </clr-password-container>
+
+      <clr-input-container>
+        <label class="required">Select Role</label>
+        <select clrInput formControlName="userRoleId">
+          <option *ngFor="let role of userRoles" [value]="role.id">{{role.name}}</option>
+        </select>
+      </clr-input-container>
+    </div>
+
+    <div class="modal-footer">
+      <div *ngIf="errors" class="error active">
+        {{errors}}
+      </div>
+
+      <button type="submit" class="btn btn-primary">OK</button>
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Cancel</button>
+    </div>
+
+  </clr-modal>
+
+</form>
+<span *ngIf="isRequesting" class="spinner spinner-inline">
+  Loading...
+</span>

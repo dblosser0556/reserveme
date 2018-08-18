@@ -48,7 +48,7 @@
 <div>
 
     <button
-      class="btn btn-primary pull-right"
+      class="btn btn-primary" [disabled]="dateIsValid(viewDate)"
       (click)="addEvent()">
       Add new
     </button>

@@ -9,20 +9,20 @@ export class InMemoryDataService implements InMemoryDbService {
         ];
 
         const resources = [
-            { id: 1, resourceName: 'Court 1', resourceDesc: '', displayOrder: 1, maxReserveTime: 90, minReserveTime: 30 },
-            { id: 2, resourceName: 'Court 2', resourceDesc: '', displayOrder: 2, maxReserveTime: 90, minReserveTime: 30 }
+            { id: 1, name: 'Court 1', description: '', displayOrder: 1, maxReservationTime: 90, minReservationTime: 30 },
+            { id: 2, name: 'Court 2', description: '', displayOrder: 2, maxReservationTime: 90, minReservationTime: 30 }
         ];
 
 
         const members = [
             {
                 id: 1, userId: 'admin', password: 'password', admin: true,
-                firstName: 'admin', lastName: 'admin', facilityId: 1
+                first: 'admin', last: 'admin', facilityId: 1
             },
 
             {
                 id: 2, userId: 'joesmith', password: 'password', admin: false,
-                firstName: 'joe', lastName: 'smith', facilityId: 1
+                first: 'joe', last: 'smith', facilityId: 1
             },
 
         ];

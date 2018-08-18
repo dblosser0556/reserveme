@@ -1,9 +1,11 @@
 export interface Resource {
     id: number;
-    facilityId: number;
-    resourceName: string;
-    resourceDesc: string;
+    name: string;
+    description: string;
+    maxReservationTime: number;  // minutes
+    minReservationTime: number; // minutes
     displayOrder: number;
-    maxReserveTime: number;  // minutes
-    minReserveTime: number; // minutes
+    createdAt: Date;
+    updatedAt: Date;
+    FacilityId: number;
 }

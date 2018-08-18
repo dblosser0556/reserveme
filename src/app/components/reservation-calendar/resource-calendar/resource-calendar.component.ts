@@ -17,10 +17,11 @@ import {
   isSameMonth,
   isSameDay,
   addMinutes,
-  format
+  format,
+  isThisQuarter
 } from 'date-fns';
-import { ReservationService, FacilityService, AuthService, ResourceService } from '../../services';
-import { Reservation, Facility, Resource } from '../../models';
+import { ReservationService, FacilityService, AuthService, ResourceService } from '../../../services';
+import { Reservation, Facility, Resource, resType } from '../../../models';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EditReservationDialogComponent } from '../edit-reservation-dialog/edit-reservation-dialog.component';
 
@@ -82,16 +83,16 @@ function endOfPeriod(period: CalendarPeriod, date: Date): Date {
 })
 export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
-  private _resourceId = new BehaviorSubject<number>(undefined);
+  private _resource = new BehaviorSubject<Resource>(undefined);
   private _facility = new BehaviorSubject<Facility>(undefined);
 
   @ViewChild(EditReservationDialogComponent) modal: EditReservationDialogComponent;
-  @Input() set resourceId(value: number) {
-    this._resourceId.next(value);
+  @Input() set resource(value: Resource) {
+    this._resource.next(value);
   }
 
-  get resourceId() {
-    return this._resourceId.getValue();
+  get resource() {
+    return this._resource.getValue();
   }
 
   @Input() set facility(value: Facility) {
@@ -101,20 +102,17 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   get facility() {
     return this._facility.getValue();
   }
-  resource: Resource;
+
 
   isLoading: boolean;
-
   view: CalendarPeriod = 'month';
-
   viewDate: Date = new Date();
-
   events: CalendarEvent[] = [];
 
   detailsData: {
     action: string;
-    facilityId: number;
-    resourceId: number;
+    facility: Facility;
+    resource: Resource;
     memberName: string;
     event: CalendarEvent;
   };
@@ -122,17 +120,11 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   openDetails = false;
 
   minDate: Date = startOfDay(new Date());
-
   maxDate: Date;
-
   maxReservationsPerDay: number = null;
-
   maxReservationsPerPeriod: number = null;
-
   prevBtnDisabled = false;
-
   nextBtnDisabled = false;
-
   activeDayIsOpen = false;
 
   actions: CalendarEventAction[] = [
@@ -161,10 +153,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.isLoading = true;
 
-    this._resourceId.subscribe(resourceId => {
-      if (resourceId !== undefined) {
-
-        this.getResource(resourceId);
+    this._resource.subscribe(resource => {
+      if (resource !== undefined) {
 
         if (this.facility !== undefined) {
           this.startUp();
@@ -174,7 +164,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
     this._facility.subscribe(facility => {
       if (facility !== undefined) {
-        if (this.resourceId !== undefined) {
+        if (this.resource !== undefined) {
           this.startUp();
         }
       }
@@ -189,23 +179,16 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   }
 
   startUp() {
-    if (this.auth.isAdmin) {
-      this.maxDate = addDays(new Date(), this.facility.adminMaxReservationDays);
-      this.maxReservationsPerDay = null;
-      this.maxReservationsPerPeriod = null;
-    } else {
-      this.maxDate = addDays(new Date(), this.facility.memberMaxReservationDays);
-      this.maxReservationsPerDay = this.facility.memberMaxReservationPerDay;
-      this.maxReservationsPerPeriod = this.facility.memberMaxReserviationsPer;
-    }
+
+    this.maxDate = addDays(new Date(), this.auth.userRole.maxReservationPeriod);
+    this.maxReservationsPerDay = this.auth.userRole.maxReserervationsPerDay;
+    this.maxReservationsPerPeriod = this.auth.userRole.maxReservationsPerPeriod;
+
     this.dateOrViewChanged();
   }
 
-  getResource(resourceId: number) {
-    this.resourceService.getOne(resourceId).subscribe(
-      results => this.resource = results
-    );
-  }
+
+
   increment(): void {
     this.changeDate(addPeriod(this.view, this.viewDate, 1));
   }
@@ -258,7 +241,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   handleEvent(action: string, event: CalendarEvent): void {
     const userName = this.auth.userName;
-    this.detailsData = { action: action, facilityId: this.facility.id, resourceId: this.resourceId, memberName: userName, event: event };
+    this.detailsData = { action: action, facility: this.facility, resource: this.resource, memberName: userName, event: event };
     this.modal.open(this.detailsData);
   }
 
@@ -289,10 +272,13 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       day: endOfDay
     }[this.view];
 
-    this.reservationService.getforResource(this.resourceId, getStart(this.viewDate), getEnd(this.viewDate))
+    this.reservationService.getforResource(this.resource.id, getStart(this.viewDate), getEnd(this.viewDate))
       .subscribe(results => {
-        const reservations: Reservation[] = results;
-        if (reservations !== null) {
+        const reservations: Reservation[] = [];
+        for (const reservation of results['reservations']) {
+          reservations.push(reservation);
+        }
+        if (reservations.length > 0) {
           const events: CalendarEvent[] = [];
           let color: any;
           reservations.forEach(reservation => {
@@ -317,8 +303,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
               end: new Date(reservation.endDateTime),
               color: color
             };
-            if (reservation.memberId === this.auth.userId) {
-              console.log('event', reservation.title, 'id', reservation.memberId, 'auth', this.auth.userId);
+            if (reservation.UserId === this.auth.userId) {
+              console.log('event', reservation.title, 'id', reservation.UserId, 'auth', this.auth.userId);
               event.actions = this.actions;
             }
 
@@ -340,7 +326,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
     let _start = startOfDay(new Date());
     _start = addMinutes(_start, this.facility.startHour * 60);
-    const _end = addMinutes(_start, this.resource.maxReserveTime);
+    const _end = addMinutes(_start, this.resource.maxReservationTime);
     const _title = this.auth.userName + ' ' + format(_start, 'hh:mm A') + ' - ' + format(_end, 'hh:mm A');
     const _event = {
       start: _start,
@@ -356,12 +342,14 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
     const reservation = {
       id: Number(event.id),
-      resourceId: this.resourceId,
       title: event.title,
       startDateTime: event.start,
       endDateTime: event.end,
-      type: 1,
-      memberId: this.auth.userId
+      type: resType.member,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ResourceId: this.resource.id,
+      UserId: this.auth.userId
     };
 
     if (reservation.id === 0) {

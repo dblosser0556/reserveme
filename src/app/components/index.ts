@@ -4,6 +4,7 @@ import { HomeComponent } from './home/home.component';
 import { HeaderComponent } from './header/header.component';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { MessagesComponent } from './messages/messages.component';
+import { RegistrationFormComponent } from './registration-form/registration-form.component';
 
 export {
     AppComponent,
@@ -11,13 +12,17 @@ export {
     PageNotFoundComponent,
     MessagesComponent,
     HomeComponent,
-    HeaderComponent
+    HeaderComponent,
+    RegistrationFormComponent
 
 };
 
 export default [
     AppComponent,
     LoginFormComponent,
-    HomeComponent
+    HomeComponent,
+    RegistrationFormComponent,
+    PageNotFoundComponent,
+    HeaderComponent
 
 ];

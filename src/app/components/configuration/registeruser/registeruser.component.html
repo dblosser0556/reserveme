@@ -1,0 +1,58 @@
+<div class="container">
+  <div class="card">
+    <div class="card-block">
+      <div *ngIf="isLoading">Loading User List ...</div>
+      <div *ngIf="!isLoading">
+        <clr-datagrid>
+          <clr-dg-column>First Name</clr-dg-column>
+          <clr-dg-column>Last Name</clr-dg-column>
+          <clr-dg-column>Email</clr-dg-column>
+          <clr-dg-column>Phone</clr-dg-column>
+          <clr-dg-column>Edit</clr-dg-column>
+          <clr-dg-column>Delete</clr-dg-column>
+          <clr-dg-row *ngFor="let user of users">
+            <clr-dg-cell>{{user.first}}</clr-dg-cell>
+            <clr-dg-cell>{{user.last}}</clr-dg-cell>
+            <clr-dg-cell>{{user.email}}</clr-dg-cell>
+            <clr-dg-cell>{{user.phone}}</clr-dg-cell>
+            <clr-dg-cell>
+              <a (click)="edit(user)">
+                <clr-icon shape="pencil" class="is-solid"></clr-icon>
+              </a>
+            </clr-dg-cell>
+            <clr-dg-cell>
+              <a ref (click)="confirmDelete(user)">
+                <clr-icon shape="trash" class="is-solid"></clr-icon>
+              </a>
+            </clr-dg-cell>
+          </clr-dg-row>
+
+          <clr-dg-footer>
+            <clr-dg-pagination #pagination [clrDgPageSize]="10" [clrDgTotalItems]="users.length">
+              {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} of {{pagination.totalItems}} users
+            </clr-dg-pagination>
+
+          </clr-dg-footer>
+        </clr-datagrid>
+      </div>
+      <div class="card-block">
+        <button class="btn btn-primary" (click)="add()">
+          <clr-icon shape="plus"></clr-icon>Add New</button>
+      </div>
+    </div>
+  </div>
+</div>
+<clr-modal [(clrModalOpen)]="showDeleteConf">
+  <h3 class="modal-title">Confirm Deletion</h3>
+  <div class="modal-body">
+    <p>Are you sure you want to delete?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-warning" (click)="onDelete()">Delete</button>
+    <button type="button" class="btn btn-outline" (click)="showDeleteConf = false">Cancel</button>
+
+  </div>
+</clr-modal>
+<ng-container *ngIf="!isLoading">
+  <app-user-detail (onOK)="saveUser($event)"></app-user-detail>
+</ng-container>

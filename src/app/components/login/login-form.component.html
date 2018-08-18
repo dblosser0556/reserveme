@@ -9,7 +9,7 @@
         </label>
         <div class="login-group">
 
-          <input class="username" type="text" id="login_username" formControlName="userName" placeholder="Username">
+          <input class="username" type="text" id="login_username" formControlName="userName" placeholder="Email">
           <input class="password" type="password" id="login_password" formControlName="password" placeholder="Password">
           <div class="checkbox">
             <input type="checkbox" id="rememberme">
@@ -18,10 +18,10 @@
             </label>
           </div>
           <div *ngIf="errors" class="error active">
-            Invalid user name or password
+            {{errors}}
           </div>
           <button type="submit" class="btn btn-primary">NEXT</button>
-          <a href="javascript://" class="signup">Sign up for a site id.</a>
+          <a routerLink="/register" class="signup">Sign up for a site id.</a>
         </div>
       </form>
       <span *ngIf="isRequesting" class="spinner spinner-inline">

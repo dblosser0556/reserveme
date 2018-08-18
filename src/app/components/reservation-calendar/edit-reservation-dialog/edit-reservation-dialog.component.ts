@@ -1,18 +1,17 @@
 import { Component, Output, EventEmitter, ViewChild, OnChanges } from '@angular/core';
-import { Reservation } from '../../models';
-import { AutofocusDirective } from '../../directives/autofocus.directive';
+import { Reservation, Resource, Facility } from '../../../models';
+import { AutofocusDirective } from '../../../directives/autofocus.directive';
 import { CalendarEvent } from 'angular-calendar';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import * as moment from 'moment';
-import { interceptingHandler } from '@angular/common/http/src/module';
-import { ReservationService } from '../../services';
+import { ReservationService } from '../../../services';
 import { Observable } from 'rxjs';
 
 export interface DetailsData {
   action: string;
   memberName: string;
-  facilityId: number;
-  resourceId: number;
+  facility: Facility;
+  resource: Resource;
   event: CalendarEvent;
 }
 
@@ -32,15 +31,14 @@ export class EditReservationDialogComponent implements OnChanges {
   event: CalendarEvent;
   action: string;
   memberName: string;
-  resourceId: number;
-  facilityId: number;
+  resource: Resource = null;
+  facility: Facility = null;
   canEdit = false;
   availableStartTimes: Observable<string[]>;
   availableEndTimes: Observable<string[]>;
 
   constructor(private fb: FormBuilder, private resService: ReservationService) {
     this.createForm();
-    console.log('contructed', new Date());
   }
 
   ngOnChanges() {
@@ -69,14 +67,14 @@ export class EditReservationDialogComponent implements OnChanges {
     } else {
       this.canEdit = false;
     }
-    this.facilityId = detailsData.facilityId;
-    this.resourceId = detailsData.resourceId;
+    this.facility = detailsData.facility;
+    this.resource = detailsData.resource;
 
     // this.getAvailableStartTimes();  // start here
-    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event.id.toString(),
-      this.resourceId.toString(), this.event.start);
-    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event.id.toString(),
-      this.resourceId.toString(), this.event.start);
+    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
+      this.resource, this.facility, this.event.start);
+    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
+      this.resource, this.facility, this.event.start);
     this.ngOnChanges();
     this.show = true;
 
@@ -151,16 +149,16 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   async getAvailableStartTimes(event$: any) {
-    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event.id.toString(),
-      this.resourceId.toString(), event$.target.value);
+    const endDateTime = this.eventDate.value + ' ' + event$.target.value;
+    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
+      this.resource, this.facility, event$.target.value);
 
   }
 
   async getAvailableEndTimes(event$: any) {
     const endDateTime = this.eventDate.value + ' ' + event$.target.value;
-    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event.id.toString(),
-      this.resourceId.toString(),
-      moment(endDateTime).toDate());
+    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
+      this.resource, this.facility, moment(endDateTime).toDate());
   }
 }
 

@@ -1,9 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { MemberService } from '../../services/member.service';
-import { HttpErrorResponse } from '@angular/common/http/src/response';
 import { FacilityService } from '../../services/facility.service';
 import { AuthService } from '../../services';
 import { first } from 'rxjs/operators';
@@ -32,9 +30,7 @@ export class LoginFormComponent implements OnInit {
   loginForm: FormGroup;
 
   constructor(private authService: AuthService,
-    private facilityService: FacilityService,
     private router: Router,
-    private activatedRoute: ActivatedRoute,
     private fb: FormBuilder) { }
 
   ngOnInit() {

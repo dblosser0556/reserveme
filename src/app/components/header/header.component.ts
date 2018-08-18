@@ -3,7 +3,7 @@ import { AuthService, FacilityService } from '../../services';
 import { Subscription } from 'rxjs';
 
 import { Router } from '@angular/router';
-import { Member, Facility } from '../../models';
+import { Facility } from '../../models';
 import {  } from '../../services/facility.service';
 
 @Component({
@@ -30,15 +30,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (status) {
 
             this.currentUser = this.user.userName;
+            this.currentFacility = this.user.userFacility;
 
-        }
-      });
-    this.subFacilityStatus = this.facilityService.authNavStatus$.subscribe(
-      status => {
-      this.facilityStatus = status;
-        if (status) {
-          this.currentFacility = this.facilityService.currentFacility();
-          console.log('Current Facility:', this.currentFacility);
         }
       });
 

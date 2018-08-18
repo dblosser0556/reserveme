@@ -1,14 +1,16 @@
 import { ModuleWithProviders } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-
-import { LoginFormComponent, HomeComponent } from './components';
+import { ReservationCalendarComponent } from './components/reservation-calendar/reservation-calendar.component';
+import { LoginFormComponent, HomeComponent, RegistrationFormComponent } from './components';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { AuthGuard } from './guard/auth.guard';
 
 const appRoutes: Routes = [
-  { path: '', component: LoginFormComponent, data: { breadcrumb: 'Login'} },
+  { path: '', component: HomeComponent, data: { breadcrumb: 'Home'} },
   { path: 'login', component: LoginFormComponent, data: { breadcrumb: 'Login'} },
-  { path: 'home', component: HomeComponent, data: { breadcrumb: 'Home'}, canActivate: [AuthGuard] },
+  { path: 'register', component: RegistrationFormComponent, data: { breadcrumb: 'Register'} },
+  { path: 'home', component: HomeComponent, data: { breadcrumb: 'Home'} },
+  { path: 'calendar', component: ReservationCalendarComponent, data: { breadcrumb: 'Calendar'}, canActivate: [AuthGuard] },
   { path: '**', component: PageNotFoundComponent, data: {breadcrumb: 'PageNotFound'}}
 
 ];

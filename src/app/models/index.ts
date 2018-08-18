@@ -1,4 +1,6 @@
 export * from './facility';
-export * from './member';
+export * from './user';
 export * from './reservation';
 export * from './resource';
+export * from './userRole';
+export * from './registerUser';

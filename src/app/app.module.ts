@@ -2,21 +2,19 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './components/app/app.component';
-import { ClarityModule } from '@clr/angular';
+import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MessagesComponent } from './components/messages/messages.component';
 import { HomeComponent, LoginFormComponent, HeaderComponent } from './components';
 import { routing } from './app.routing';
-import { MemberService, AuthService, FacilityService, ResourceService, ReservationService } from './services';
+import { UserService, AuthService, FacilityService, ResourceService, ReservationService } from './services';
 import { AuthGuard} from './guard/auth.guard';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { CalendarHeaderComponent } from './components/calendar-header/calendar-header.component';
-import { ResourceTabsComponent } from './components/resource-tabs/resource-tabs.component';
-import { ResourceCalendarComponent } from './components/resource-calendar/resource-calendar.component';
-import { CalendarModule } from 'angular-calendar';
+import { ReservationCalendarModule } from './components/reservation-calendar/reservation-calenadar.module';
 import { JwtModule} from '@auth0/angular-jwt';
-import { EditReservationDialogComponent } from './components/edit-reservation-dialog/edit-reservation-dialog.component';
+import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
+import { ConfigurationModule } from './components/configuration/configuration.module';
 
 export function tokenGetter() {
   return localStorage.getItem('access_token');
@@ -30,19 +28,18 @@ export function tokenGetter() {
     LoginFormComponent,
     HeaderComponent,
     PageNotFoundComponent,
-    CalendarHeaderComponent,
-    ResourceTabsComponent,
-    ResourceCalendarComponent,
-    EditReservationDialogComponent
+    RegistrationFormComponent
   ],
   imports: [
     HttpClientModule,
     BrowserModule,
     ClarityModule,
+    ClrFormsNextModule,
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
-    CalendarModule.forRoot(),
+    ReservationCalendarModule,
+    ConfigurationModule,
     routing,
     JwtModule.forRoot({
       config: {
@@ -51,7 +48,7 @@ export function tokenGetter() {
         blacklistedRoutes: ['localhost:4000/api/auth']
     }})
   ],
-  providers: [MemberService, AuthService, AuthGuard, FacilityService, ResourceService, ReservationService],
+  providers: [UserService, AuthService, AuthGuard, FacilityService, ResourceService, ReservationService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

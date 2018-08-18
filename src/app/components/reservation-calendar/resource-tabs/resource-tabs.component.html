@@ -9,10 +9,10 @@
 <div *ngIf="!isLoading">
   <clr-tabs>
     <clr-tab *ngFor="let resource of resources; let i = index">
-      <button clrTabLink [id]="'id'+i">{{resource.resourceName}}</button>
+      <button clrTabLink [id]="'id'+i">{{resource.name}}</button>
 
       <clr-tab-content *clrIfActive>
-        <app-resource-calendar [resourceId]="resource.id" [facility]="facility"></app-resource-calendar>
+        <app-resource-calendar [resource]="resource" [facility]="facility"></app-resource-calendar>
       </clr-tab-content>
 
     </clr-tab>
