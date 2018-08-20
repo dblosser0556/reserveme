@@ -1,8 +1,17 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnChanges } from '@angular/core';
 import { UserService, AuthService, UserRoleService } from '../../../services';
 import { User, UserRole } from '../../../models';
-import { UserDetailComponent } from './user-detail/user-detail.component';
 
+import { ApiMessage } from '../../../models/apiMessage';
+import { ToastrService } from 'ngx-toastr';
+import { FormBuilder, FormGroup } from '@angular/forms';
+
+interface PatchUser {
+  id: number;
+  data: {
+    UserRoleId: number;
+  };
+}
 
 @Component({
   selector: 'app-registeruser',
@@ -12,18 +21,30 @@ import { UserDetailComponent } from './user-detail/user-detail.component';
 
 
 
-export class RegisterUserComponent implements OnInit {
+
+export class RegisterUserComponent implements OnInit, OnChanges {
   isRequesting = false;
   users: User[] = [];
   errors: string;
   userRoles: UserRole[];
+  newUsersForm: FormGroup;
+  showDeleteConf: boolean;
+  selectedUser: User;
 
-  @ViewChild(UserDetailComponent) modal: UserDetailComponent;
-  constructor(private userService: UserService, private auth: AuthService,
-    private userRoleService: UserRoleService) { }
+
+  constructor(private userService: UserService, private fb: FormBuilder, private auth: AuthService,
+    private userRoleService: UserRoleService, private toast: ToastrService) {
+    this.createForm();
+  }
 
   ngOnInit() {
-    this.getUsers();
+    this.isRequesting = true;
+    this.getUserRoles();
+  }
+
+  ngOnChanges() {
+    this.newUsersForm.reset();
+    this.setNewUser(this.users);
   }
 
   getUsers() {
@@ -31,7 +52,9 @@ export class RegisterUserComponent implements OnInit {
     this.userService.getNewUsers(this.auth.userFacility.id).subscribe(
       results => {
         this.users = results['users'];
-        this.getUserRoles();
+        console.log('users', this.users);
+        this.ngOnChanges();
+        this.isRequesting = false;
       },
       errors => (this.errors = errors));
   }
@@ -41,48 +64,103 @@ export class RegisterUserComponent implements OnInit {
     this.userRoleService.getAll().subscribe(
       results => {
         this.userRoles = results['userRoles'];
-        this.isRequesting = false;
+        this.getUsers();
       },
       errors => this.errors = errors);
   }
 
-  add() {
-    const user = {
-      id: 0,
-      first: '',
-      last: '',
-      email: '',
-      phone: '',
-      password: '',
-      FacilityId: this.auth.userFacility.id,
-      UserRoleId: 0
-    };
-
-    this.modal.open(user, this.userRoles);
+  createForm() {
+    this.newUsersForm = this.fb.group({
+      newUsers: this.fb.array([])
+    });
   }
 
-  edit(user: User) {
-    this.modal.open(user, this.userRoles);
+  setNewUser(users: User[]) {
+    const newUserFGs = users.map(user =>
+      this.createNewUser(user)
+    );
+
+    const newUsersFormArray = this.fb.array(newUserFGs);
+    this.newUsersForm.setControl('newUsers', newUsersFormArray);
   }
 
-  saveUser(user: User) {
+  createNewUser(user: User) {
+    return this.fb.group({
+      id: user.id,
+      userName: [user.first + ' ' + user.last],
+      phone: user.phone,
+      email: user.email,
+      userRoleId: user.UserRoleId
+    });
+  }
 
-    if (user.id === 0) {
-      this.userService.create(user).subscribe(
-        res => {
-          // user saved
-        }
-      );
-    } else {
-      this.userService.update(user.id, user).subscribe(
-        res => {
-          //
-        }
-      );
+  submit() {
+    this.newUsersForm.updateValueAndValidity();
+    if (this.newUsersForm.invalid) {
+      this.toast.error(this.newUsersForm.errors.toString(), 'Oops Somthing is wrong');
     }
-
-
+    const newUsers: PatchUser[] = this.getUsersFromFormValue(this.newUsersForm.value);
+    if (newUsers.length === 0) {
+      this.toast.info('There is nothing to update.  You need to select the user role', 'Oops');
+      return;
+    }
+    for (const newUser of newUsers) {
+      this.userService.patch(newUser.id, newUser.data).subscribe(
+        res => {
+          const results: ApiMessage = res;
+          if (results.success === true) {
+            this.toast.success(results.message, 'Success');
+            this.getUsers();
+            this.isRequesting = true;
+          } else {
+            this.toast.error(results.message, 'Something Went Wrong');
+            console.log('Error', results);
+          }
+        }, error => {
+          this.toast.error('Oops something went wrong', 'Error');
+          console.log('Error ', error);
+        });
+    }
   }
 
+  getUsersFromFormValue(formValue: any): PatchUser[] {
+    const patchUsers: PatchUser[] = [];
+    for (const user of formValue.newUsers) {
+
+        if (user.userRoleId !== undefined && user.userRoleId !== null) {
+          const data = { UserRoleId: user.userRoleId };
+          const patchUser = {
+            id: user.id,
+            data: data
+          };
+          patchUsers.push(patchUser);
+        }
+      }
+    return patchUsers;
+  }
+
+  confirmDelete(user: User) {
+    this.selectedUser = user;
+    this.showDeleteConf = true;
+  }
+
+  onDelete() {
+    this.showDeleteConf = false;
+    this.userService.delete(this.selectedUser.id)
+      .subscribe(res => {
+
+        const results: ApiMessage = res;
+        if (results.success === true) {
+          this.toast.success(results.message, 'Success');
+          this.isRequesting = true;
+        } else {
+          this.toast.error(results.message, 'Something Went Wrong');
+          console.log('Error', results);
+        }
+      }, error => {
+        this.toast.error('Oops something went wrong', 'Error');
+        console.log('Error ', error);
+      });
+  }
 
 }

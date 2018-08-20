@@ -5,6 +5,7 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService } from './message.service';
 import { User, Facility, UserRole, RegisterUser } from '../models';
+import { UserRoleService } from './user-role.service';
 
 interface ResultMessage {
   success: string;
@@ -25,7 +26,8 @@ export class AuthService {
   authNavStatus$ = this._authNavStatusSource.asObservable();
 
 
-  constructor(private http: HttpClient, private messageService: MessageService) { }
+  constructor(private http: HttpClient, private messageService: MessageService,
+    private userRoleService: UserRoleService) { }
 
   private log(message: string) {
     this.messageService.add(`MemberService:  ${message}`);
@@ -59,7 +61,7 @@ export class AuthService {
         map((result: ResultMessage) => {
           if (result.success) {
             this._user = result.user;
-            this._facility = result.user.facility;
+            this._facility = result.user.Facility;
             this._userRole = {
               id: 0,
               name: 'Unregistered',
@@ -111,6 +113,10 @@ export class AuthService {
     return this._user.id;
   }
 
+  public get currentUser(): User {
+    return this._user;
+  }
+
   public get userName(): string {
     return this._user.first + ' ' + this._user.last;
   }
@@ -132,7 +138,7 @@ export class AuthService {
 
         `Backend returned code ${error.status}, ` +
         `body was: ${error.error.error}`);
-        return throwError(error.error.error);
+      return throwError(error.error.error);
     }
     // return an observable with a user-facing error message
     return throwError(

@@ -20,10 +20,10 @@ export abstract class AbstractRestService<T> {
         this.messageService.add(`Service:  ${message}`);
     }
 
-    getAll(): Observable<T[]> {
+    getAll(param?: HttpParams): Observable<T[]> {
 
 
-        return this.http.get<T[]>(this.actionURL)
+        return this.http.get<T[]>(this.actionURL, { params: param })
             .pipe(
                 map(results => {
                     console.log('results', results);
@@ -59,10 +59,29 @@ export abstract class AbstractRestService<T> {
         const _body = JSON.stringify(body);
         const headerOptions = new HttpHeaders()
             .set('Content-Type', 'application/json');
-        const url = `$(this.actionURL)/${id}`;
-        return this.http.post<T>(url, _body, { headers: headerOptions }).pipe(
+        const url = `${this.actionURL}/${id}`;
+        return this.http.put<T>(url, _body, { headers: headerOptions }).pipe(
             tap(res => this.log(`updated ${this.message} id=${res}`)),
             catchError(this.handleError<any>(`updated ${this.message} body=${_body}`))
+        );
+    }
+
+    patch(id: number, body: any): Observable<any> {
+        const _body = JSON.stringify(body);
+        const headerOptions = new HttpHeaders()
+            .set('Content-Type', 'application/json');
+        const url = `${this.actionURL}/${id}`;
+        return this.http.put<T>(url, _body, { headers: headerOptions }).pipe(
+            tap(res => this.log(`updated ${this.message} id=${res}`)),
+            catchError(this.handleError<any>(`updated ${this.message} body=${_body}`))
+        );
+    }
+
+    delete(id: number): Observable<any> {
+        const url = `${this.actionURL}/${id}`;
+        return this.http.delete(url).pipe(
+            tap(res => this.log(`deleted id=${id} from ${this.message}`)),
+            catchError(this.handleError<any>(`attempt delete ${this.message} id=${id}`))
         );
     }
     /**

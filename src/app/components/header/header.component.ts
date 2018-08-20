@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AuthService, FacilityService } from '../../services';
+import { AuthService, UserService } from '../../services';
 import { Subscription } from 'rxjs';
 
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   currentUser: string = null;
   currentFacility: Facility = null;
 
-  constructor(private user: AuthService, private facilityService: FacilityService,
+  constructor(private user: AuthService, private userService: UserService,
     private router: Router) { }
 
   ngOnInit() {
@@ -50,4 +50,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subLoginStatus.unsubscribe();
     this.subFacilityStatus.unsubscribe();
   }
+
+ 
 }

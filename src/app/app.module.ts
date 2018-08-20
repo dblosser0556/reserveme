@@ -15,6 +15,8 @@ import { ReservationCalendarModule } from './components/reservation-calendar/res
 import { JwtModule} from '@auth0/angular-jwt';
 import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
 import { ConfigurationModule } from './components/configuration/configuration.module';
+import { ToastrModule } from 'ngx-toastr';
+import { UserDetailModule } from './components/user-detail/user-detail.module';
 
 export function tokenGetter() {
   return localStorage.getItem('access_token');
@@ -40,6 +42,12 @@ export function tokenGetter() {
     BrowserAnimationsModule,
     ReservationCalendarModule,
     ConfigurationModule,
+    UserDetailModule,
+    ToastrModule.forRoot({
+      timeOut: 5000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true,
+    }),
     routing,
     JwtModule.forRoot({
       config: {

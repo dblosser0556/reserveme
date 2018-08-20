@@ -2,7 +2,13 @@ import { Component, OnInit } from '@angular/core';
 
 @Component({
 
-  template: '<h2>Page not found</h2>'
+  template: `
+  <div class="content-container">
+    <div class="content-area">
+      <h2>Sorry.  Page not found</h2>
+    </div>
+  </div>
+  `
 })
 export class PageNotFoundComponent implements OnInit {
 

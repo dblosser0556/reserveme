@@ -5,13 +5,17 @@ import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { configurationRouting } from './configuration.routing';
+
+
 import {
   RootComponent,
   RegisterUserComponent,
   RoleComponent,
   FacilityInfoComponent
 } from '.';
-import { UserDetailComponent } from './registeruser/user-detail/user-detail.component';
+
+import { UserComponent } from './user/user.component';
+import { ResourceComponent } from './resource/resource.component';
 
 @NgModule({
   imports: [
@@ -29,7 +33,8 @@ import { UserDetailComponent } from './registeruser/user-detail/user-detail.comp
     RegisterUserComponent,
     RoleComponent,
     FacilityInfoComponent,
-    UserDetailComponent
+    UserComponent,
+    ResourceComponent
   ],
 
   exports: [RootComponent]

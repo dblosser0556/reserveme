@@ -1,8 +1,11 @@
 import { Component, OnInit, OnChanges, EventEmitter, Output } from '@angular/core';
-import { AuthService, UserService } from '../../../../services';
-import { UserRole, User } from '../../../../models';
+import { AuthService, UserService, UserRoleService } from '../../services';
+import { UserRole, User } from '../../models';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
+import { ApiMessage } from '../../models/apiMessage';
+import { ToastrService } from 'ngx-toastr';
+import { HttpParams } from '@angular/common/http';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-user-detail',
@@ -16,16 +19,24 @@ export class UserDetailComponent implements OnInit, OnChanges {
   userForm: FormGroup;
   currentUser: User;
   show = false;
-
+  showRole = true;
   // tslint:disable-next-line:no-output-on-prefix
   @Output() onOK: EventEmitter<User> = new EventEmitter<User>();
 
   constructor(private fb: FormBuilder, private auth: AuthService,
-    private userService: UserService) {
-      this.createForm();
-    }
+    private userService: UserService, private toast: ToastrService,
+    private userRoleService: UserRoleService, private router: Router, private activeRoute: ActivatedRoute) {
+    this.createForm();
+    this.getUserRoles();
+  }
 
   ngOnInit() {
+    this.currentUser = this.userService.currentUser;
+    if (this.currentUser === undefined) {
+      this.showRole = false;
+      this.currentUser = this.auth.currentUser;
+    }
+    this.ngOnChanges();
   }
 
   ngOnChanges() {
@@ -43,16 +54,21 @@ export class UserDetailComponent implements OnInit, OnChanges {
       });
   }
 
-
-  open(user: User, userRoles: UserRole[]) {
-    this.currentUser = user;
-    this.userRoles = userRoles;
-    this.ngOnChanges();
-    this.show = true;
+  getUserRoles() {
+    const params = new HttpParams();
+    params.append('FacilityId', this.auth.userFacility.id.toString());
+    this.userRoleService.getAll(params).subscribe(
+      res => {
+        this.userRoles = res['userRoles'];
+      }
+    );
   }
 
+
   cancel() {
-    this.show = false;
+    if (this.router.url === '/configuration/userdetails') {
+      this.router.navigate(['/configuration/users']);
+    }
   }
 
   submit() {
@@ -62,7 +78,47 @@ export class UserDetailComponent implements OnInit, OnChanges {
       return;
     }
     const user = this.getUserFromFormValue(this.userForm.value);
-    this.onOK.emit(user);
+
+
+    if (user.id === 0) {
+      this.userService.create(user).subscribe(
+        res => {
+          const results: ApiMessage = res;
+          if (results.success === true) {
+            this.toast.success(results.message, 'Success');
+            if (this.router.url === '/configuration/userdetails') {
+              this.router.navigate(['/configuration/users']);
+            }
+          } else {
+            this.toast.error(results.message, 'Something Went Wrong');
+            console.log('Error', results);
+          }
+        }, error => {
+          this.toast.error('Oops something went wrong', 'Error');
+          console.log('Error ', error);
+        }
+      );
+    } else {
+      this.userService.update(user.id, user).subscribe(
+        res => {
+
+          const results: ApiMessage = res;
+          if (results.success === true) {
+            this.toast.success(results.message, 'Success');
+            if (this.router.url === '/configuration/userdetails') {
+              this.router.navigate(['/configuration/users']);
+            }
+          } else {
+            this.toast.error(results.message, 'Something Went Wrong');
+            console.log('Error', results);
+          }
+        }, error => {
+          this.toast.error('Oops something went wrong', 'Error');
+          console.log('Error ', error);
+        }
+
+      );
+    }
   }
 
 

@@ -13,9 +13,19 @@ import { map, tap, catchError } from 'rxjs/operators';
 
 export class UserService extends AbstractRestService<User> {
 
+  _currentUser: User;
+
   constructor(http: HttpClient, message: MessageService) {
     const apiUrl = 'v1/users';
     super(http, message, apiUrl, 'member');
+  }
+
+  get currentUser(): User {
+    return this._currentUser;
+  }
+
+  set currentUser(user: User) {
+    this._currentUser = user;
   }
 
   getNewUsers(facilityId: number): Observable<User[]> {

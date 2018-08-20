@@ -12,7 +12,7 @@ export interface User {
     phone: string;
     FacilityId: number;
     UserRoleId: number;
-    userRole?: UserRole;
-    facility?: Facility;
-    reservations?: Reservation[];
+    UserRole?: UserRole;
+    Facility?: Facility;
+    Reservations?: Reservation[];
 }

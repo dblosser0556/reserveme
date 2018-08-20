@@ -1,5 +1,5 @@
 <div class="content-container">
-  <main class="content-area">
+  <div class="content-area">
     <div style="height:30px">
       <div style="float:left">
         <!--<app-breadcrumbs></app-breadcrumbs> -->
@@ -9,12 +9,9 @@
       </div>
     </div>
     <router-outlet></router-outlet>
-  </main>
+  </div>
 
   <clr-vertical-nav [clrVerticalNavCollapsible]="true">
-
-
-    
 
     <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/register">
       <clr-icon clrVerticalNavIcon shape="users"></clr-icon>
@@ -27,5 +24,12 @@
     <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/facility">
       <clr-icon clrVerticalNavIcon shape="info-circle" size="16"></clr-icon>
       Facility Info</a>
+    <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/resource">
+      <clr-icon clrVerticalNavIcon shape="info-circle" size="16"></clr-icon>
+      Manage Resources</a>
+
+    <a clrVerticalNavLink href="#" routerLinkActive="active" routerLink="/configuration/users">
+      <clr-icon clrVerticalNavIcon shape="info-circle" size="16"></clr-icon>
+      Manage Users</a>
   </clr-vertical-nav>
 </div>
