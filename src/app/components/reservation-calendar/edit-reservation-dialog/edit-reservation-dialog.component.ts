@@ -4,7 +4,7 @@ import { AutofocusDirective } from '../../../directives/autofocus.directive';
 import { CalendarEvent } from 'angular-calendar';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import * as moment from 'moment';
-import { ReservationService } from '../../../services';
+import { ReservationService, AuthService } from '../../../services';
 import { Observable } from 'rxjs';
 
 export interface DetailsData {
@@ -28,6 +28,13 @@ export class EditReservationDialogComponent implements OnChanges {
   eventForm: FormGroup;
   show = false;
 
+  // handle recurring features
+  canRecur = false;
+  showRecurring = false;
+  pattern = 'weekly';
+  daily = 'dailyEvery';
+  monthly = 'monthByDay';
+
   event: CalendarEvent;
   action: string;
   memberName: string;
@@ -36,8 +43,11 @@ export class EditReservationDialogComponent implements OnChanges {
   canEdit = false;
   availableStartTimes: Observable<string[]>;
   availableEndTimes: Observable<string[]>;
+  availableDays: string[];
+  maxDate: Date;
+  maxReservationsPerDay: number;
 
-  constructor(private fb: FormBuilder, private resService: ReservationService) {
+  constructor(private fb: FormBuilder, private resService: ReservationService, private auth: AuthService) {
     this.createForm();
   }
 
@@ -64,17 +74,25 @@ export class EditReservationDialogComponent implements OnChanges {
     // only allow editing the form if type edited.
     if (this.action === 'Edit' || this.action === 'Create') {
       this.canEdit = true;
+      this.canRecur = this.auth.userRole.isAdmin;
     } else {
       this.canEdit = false;
     }
     this.facility = detailsData.facility;
     this.resource = detailsData.resource;
+    this.maxDate = moment().add(this.auth.userRole.maxReservationPeriod, 'days').toDate();
+    this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
 
     // this.getAvailableStartTimes();  // start here
     this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
       this.resource, this.facility, this.event.start);
     this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
       this.resource, this.facility, this.event.start);
+    if (this.auth.userRole.maxReservationPeriod <= 14) {
+      this.availableDays = this.getAvailableDays(this.event);
+    }
+
+
     this.ngOnChanges();
     this.show = true;
 
@@ -149,9 +167,9 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   async getAvailableStartTimes(event$: any) {
-    const endDateTime = this.eventDate.value + ' ' + event$.target.value;
+    const startDateTime = this.eventDate.value + ' ' + event$.target.value;
     this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
-      this.resource, this.facility, event$.target.value);
+      this.resource, this.facility, moment(startDateTime).toDate());
 
   }
 
@@ -160,6 +178,26 @@ export class EditReservationDialogComponent implements OnChanges {
     this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
       this.resource, this.facility, moment(endDateTime).toDate());
   }
+
+  getAvailableDays(event$: any) {
+    const availableDays = new Array<string>();
+    for (let i = 0;  i < this.auth.userRole.maxReservationPeriod; i++) {
+      // make sure the current user has less than the maximimum reservations per day
+      let found = 0;
+      const date = moment().add(i, 'days');
+      for (const reservation of this.auth.reservations) {
+        if (date.isSame(reservation.startDateTime, 'day') && reservation.id !== event$.id) {
+          found++;
+        }
+      }
+      if (found < this.maxReservationsPerDay) {
+        availableDays.push(date.format('YYYY-MM-DD'));
+      }
+    }
+    return availableDays;
+  }
+
+ 
 }
 
 

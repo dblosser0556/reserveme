@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
-import { ClarityModule } from '@clr/angular';
+import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UserService, AuthService, FacilityService, ResourceService, ReservationService } from '../../services';
@@ -24,6 +24,7 @@ import { CalendarModule } from 'angular-calendar';
     HttpClientModule,
     BrowserModule,
     ClarityModule,
+    ClrFormsNextModule,
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,

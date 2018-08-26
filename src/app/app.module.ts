@@ -11,7 +11,7 @@ import { routing } from './app.routing';
 import { UserService, AuthService, FacilityService, ResourceService, ReservationService } from './services';
 import { AuthGuard} from './guard/auth.guard';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { ReservationCalendarModule } from './components/reservation-calendar/reservation-calenadar.module';
+import { ReservationCalendarModule } from './components/reservation-calendar/reservation-calendar.module';
 import { JwtModule} from '@auth0/angular-jwt';
 import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
 import { ConfigurationModule } from './components/configuration/configuration.module';

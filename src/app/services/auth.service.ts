@@ -4,7 +4,7 @@ import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService } from './message.service';
-import { User, Facility, UserRole, RegisterUser } from '../models';
+import { User, Facility, UserRole, RegisterUser, Reservation } from '../models';
 import { UserRoleService } from './user-role.service';
 
 interface ResultMessage {
@@ -20,7 +20,8 @@ export class AuthService {
   private _user: User = null;
   private _userRole: UserRole = null;
   private _loggedIn = false;
-
+  private _reservations: Reservation[] = [];
+  
   private _authNavStatusSource = new BehaviorSubject<boolean>(false);
   // Observable navItem stream
   authNavStatus$ = this._authNavStatusSource.asObservable();
@@ -42,6 +43,7 @@ export class AuthService {
           this._user = result['user'];
           this._facility = this._user['Facility'];
           this._userRole = this._user['UserRole'];
+          this._reservations = this._user.Reservations;
           this._loggedIn = true;
 
           localStorage.setItem('access_token', token.substr(7));
@@ -65,7 +67,7 @@ export class AuthService {
             this._userRole = {
               id: 0,
               name: 'Unregistered',
-              maxReserervationsPerDay: 0,
+              maxReservationsPerDay: 0,
               maxReservationPeriod: 0,
               maxReservationsPerPeriod: 0,
               isAdmin: false,
@@ -105,6 +107,10 @@ export class AuthService {
     return this._userRole;
   }
 
+  public get reservations(): Reservation[] {
+    return this._reservations;
+  }
+  
   public get isAdmin(): boolean {
     return (this._userRole.isAdmin);
   }

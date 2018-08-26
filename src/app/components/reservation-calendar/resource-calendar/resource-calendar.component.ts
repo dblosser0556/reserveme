@@ -24,6 +24,8 @@ import { ReservationService, FacilityService, AuthService, ResourceService } fro
 import { Reservation, Facility, Resource, resType } from '../../../models';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EditReservationDialogComponent } from '../edit-reservation-dialog/edit-reservation-dialog.component';
+import { ApiMessage } from '../../../models/apiMessage';
+import { ToastrService } from 'ngx-toastr';
 
 
 const colors: any = {
@@ -78,14 +80,23 @@ function endOfPeriod(period: CalendarPeriod, date: Date): Date {
 @Component({
   selector: 'app-resource-calendar',
   templateUrl: './resource-calendar.component.html',
-  styleUrls: ['./resource-calendar.component.scss'],
+  styles: [`
+   .cal-disabled {
+    background-color: rgb(247, 125, 125) !important;
+    pointer-events: none;
+  }
+  .cal-disabled .cal-day-number {
+    opacity: 0.8;
+  }
+  `
+
+  ]
 
 })
 export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   private _resource = new BehaviorSubject<Resource>(undefined);
-  private _facility = new BehaviorSubject<Facility>(undefined);
-
+  private facility: Facility;
   @ViewChild(EditReservationDialogComponent) modal: EditReservationDialogComponent;
   @Input() set resource(value: Resource) {
     this._resource.next(value);
@@ -95,18 +106,11 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     return this._resource.getValue();
   }
 
-  @Input() set facility(value: Facility) {
-    this._facility.next(value);
-  }
-
-  get facility() {
-    return this._facility.getValue();
-  }
-
 
   isLoading: boolean;
   view: CalendarPeriod = 'month';
   viewDate: Date = new Date();
+  selectedDay: CalendarMonthViewDay;
   events: CalendarEvent[] = [];
 
   detailsData: {
@@ -146,8 +150,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   refresh: Subject<any> = new Subject();
 
   constructor(private reservationService: ReservationService, private auth: AuthService,
-    private resourceService: ResourceService) {
-
+    private resourceService: ResourceService, private toast: ToastrService) {
+    this.facility = this.auth.userFacility;
   }
 
   ngOnInit() {
@@ -156,20 +160,9 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     this._resource.subscribe(resource => {
       if (resource !== undefined) {
 
-        if (this.facility !== undefined) {
-          this.startUp();
-        }
+        this.startUp();
       }
     });
-
-    this._facility.subscribe(facility => {
-      if (facility !== undefined) {
-        if (this.resource !== undefined) {
-          this.startUp();
-        }
-      }
-    });
-
   }
 
   ngAfterViewInit(): void {
@@ -181,7 +174,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   startUp() {
 
     this.maxDate = addDays(new Date(), this.auth.userRole.maxReservationPeriod);
-    this.maxReservationsPerDay = this.auth.userRole.maxReserervationsPerDay;
+    this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
     this.maxReservationsPerPeriod = this.auth.userRole.maxReservationsPerPeriod;
 
     this.dateOrViewChanged();
@@ -217,7 +210,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   dateOrViewChanged(): void {
     this.isLoading = true;
-    this.prevBtnDisabled = !this.dateIsValid(
+    /* this.prevBtnDisabled = !this.dateIsValid(
       endOfPeriod(this.view, subPeriod(this.view, this.viewDate, 1))
     );
     this.nextBtnDisabled = !this.dateIsValid(
@@ -227,7 +220,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       this.changeDate(this.minDate);
     } else if (this.viewDate > this.maxDate) {
       this.changeDate(this.maxDate);
-    }
+    } */
     this.getReservations();
   }
 
@@ -235,6 +228,9 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     body.forEach(day => {
       if (!this.dateIsValid(day.date)) {
         day.cssClass = 'cal-disabled';
+      }
+      if (isSameDay(this.selectedDay.date, day.date){
+        day.cssClass = 'cal-day-selected';
       }
     });
   }
@@ -246,12 +242,19 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   }
 
 
-  dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
-    if (isSameMonth(date, this.viewDate)) {
-      this.viewDate = date;
+  dayClicked(day: CalendarMonthViewDay): void {
+    if (isSameMonth(day.date, this.viewDate)) {
+      if (this.selectedDay !== undefined) {
+        delete this.selectedDay.cssClass;
+      }
+
+      this.selectedDay = day;
+      this.selectedDay.cssClass = 'cal-day-selected';
+      day.cssClass = 'cal-day-selected';
+      this.viewDate = day.date;
       if (
-        (isSameDay(this.viewDate, date) && this.activeDayIsOpen === true) ||
-        events.length === 0
+        (isSameDay(this.viewDate, day.date) && this.activeDayIsOpen === true) ||
+        day.events.length === 0
       ) {
         this.activeDayIsOpen = false;
       } else {
@@ -324,7 +327,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   addEvent(event$: any) {
 
-    let _start = startOfDay(new Date());
+    let _start = startOfDay(this.viewDate);
     _start = addMinutes(_start, this.facility.startHour * 60);
     const _end = addMinutes(_start, this.resource.maxReservationTime);
     const _title = this.auth.userName + ' ' + format(_start, 'hh:mm A') + ' - ' + format(_end, 'hh:mm A');
@@ -355,12 +358,19 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     if (reservation.id === 0) {
       this.reservationService.create(reservation).subscribe(
         res => {
+          const results: ApiMessage = res;
+          this.toast.success(results.message, 'Success');
+          this.auth.reservations.push(results['reservation']);
           this.dateOrViewChanged();
         }
       );
     } else {
       this.reservationService.update(reservation.id, reservation).subscribe(
         res => {
+          const results: ApiMessage = res;
+          this.toast.success(results.message, 'Success');
+          let _reservation: Reservation = this.auth.reservations.find(_res => _res.id === reservation.id);
+          _reservation = results['reservation'];
           this.dateOrViewChanged();
         }
       );

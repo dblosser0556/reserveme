@@ -1,71 +1,229 @@
 <form novalidate name="eventForm" [formGroup]="eventForm" (ngSubmit)="onSubmit();">
-  <clr-modal [(clrModalOpen)]="show">
+  <clr-modal [(clrModalOpen)]="show" [clrModalSize]="'lg'">
 
     <div class="modal-title">{{action}}</div>
 
     <div class="modal-body">
       <section class="form-block">
-        <div class="form-group ">
-          <label>Title</label>
-          <input type="text" name="title" formControlName="title" size="45" readonly>
-        </div>
-        <div class="form-group ">
-          <label class="required">Date</label>
-          <label for="eventDate" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="eventDate.invalid
-                && (eventDate.dirty || eventDate.touched)">
-            <input id="eventDate" type="date" autofocus size="25" formControlName="eventDate" placeholder="date" required [readonly]="!canEdit"
-              (change)="getAvailableStartTimes($event)">
-            <span class="tooltip-content">
-              Date is required!
-            </span>
-          </label>
-        </div>
-        <div class="form-group ">
-          <label class="required">Start Time</label>
-          <label for="startTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="startTime.invalid && (startTime.dirty || startTime.touched)">
-            <ng-container *ngIf="!canEdit">
-              <input type="text" id="startTime" formControlName="startTime" readonly>
-            </ng-container>
-            <ng-container *ngIf="canEdit">
-              <div class="select">
-                <select id="startTime" formControlName="startTime" placeholder="select start time" required (change)="getAvailableEndTimes($event)">
-                  <option *ngFor="let time of availableStartTimes | async" [value]="time">{{time}}</option>
-                </select>
-              </div>
-            </ng-container>
 
-            <span class="tooltip-content">
-              Start Time is required!
-            </span>
-          </label>
-        </div>
-        <div class="form-group ">
-          <label class="required">End Time</label>
-          <label for="endTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm" [class.invalid]="endTime.invalid
-                            && (endTime.dirty || endTime.touched)">
-            <ng-container *ngIf="!canEdit">
-              <input type="text" id="endTime" formControlName="endTime" readonly>
-            </ng-container>
+        <ng-container *ngIf="!canEdit">
+          <div class="form-group">
+            <label class="required">Title</label>
+            <input type="text" formControlName="title" size="45" readonly>
+          </div>
+          <div class="form-group">
+            <label class="required">Date</label>
+            <input type="text" id="eventDate" formControlName="eventDate" readonly>
+          </div>
+          <div class="form-group">
+            <label class="required">Start Time</label>
+            <input type="text" id="startTime" formControlName="startTime" readonly>
+          </div>
+          <div class="form-group">
+            <label class="required">End Time</label>
+            <input type="text" id="endTime" formControlName="endTime" readonly>
+          </div>
+        </ng-container>
 
-            <ng-container *ngIf="canEdit">
-              <div class="select">
-                <select id="endTime" formControlName="endTime" placeholder="select start time" required (change)="updateTitle($event)">
-                  <option *ngFor="let time of availableEndTimes | async" [value]="time">{{time}}</option>
-                </select>
-              </div>
-            </ng-container>
+        <!--  <ng-container *ngIf="canEdit && !availableTimes">
+          <div>
+            <label class="required">Date</label>
+            <input clrInput type="text" formControlName="eventDate" required (change)="getAvailableStartTimes($event)">
+            <clr-control-error>Date is required!</clr-control-error>
+          </div>
+        </ng-container> -->
+        <ng-container *ngIf="canEdit">
+          <div class="form-group">
+            <label class="required">Title</label>
+            <input type="text" formControlName="title" size="45" readonly>
+          </div>
 
-            <span class="tooltip-content">
-              End Time is required!
-            </span>
-          </label>
-        </div>
+          <ng-container *ngIf="canRecur">
+            <div class="form-group">
+              <label class="required">Date</label>
+              <input clrInput type="text" formControlName="eventDate" required (change)="getAvailableStartTimes($event)">
+              <clr-control-error>Date is required!</clr-control-error>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!canRecur">
+          <div class="form-group">
+            <label class="required">Date</label>
+            <div class="select">
+              <select id="startTime" formControlName="eventDate" placeholder="select date" required (change)="getAvailableStartTimes($event)">
+                <option *ngFor="let date of availableDays">{{date}}</option>
+              </select>
+            </div>
+          </div>
+        </ng-container>
+          <div class="form-group">
+            <label class="required">Start Time</label>
+
+            <div class="select">
+              <select id="startTime" formControlName="startTime" placeholder="select start time" required (change)="getAvailableEndTimes($event)">
+                <option *ngFor="let time of availableStartTimes | async" [value]="time">{{time}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="required">End Time</label>
+
+            <div class="select">
+              <select id="endTime" formControlName="endTime" placeholder="select start time" required (change)="updateTitle($event)">
+                <option *ngFor="let time of availableEndTimes | async" [value]="time">{{time}}</option>
+              </select>
+            </div>
+          </div>
+          <ng-container *ngIf="canRecur">
+            <a (click)="showRecurring=!showRecurring">Recurring</a>
+            <div *ngIf="showRecurring">
+              <section>
+                <label>Recurring Pattern</label>
+                <table width="100%">
+                  <tr>
+                    <td width="25%">
+                      <div class="radio">
+                        <input type="radio" name="gridRadios" id="daily" [checked]="pattern=='daily'" (change)="pattern='daily'">
+                        <label for="daily">Daily</label>
+                      </div>
+                      <div class="radio">
+                        <input type="radio" name="gridRadios" id="weekly" [checked]="pattern=='weekly'" (change)="pattern='weekly'">
+                        <label for="weekly">Weekly</label>
+                      </div>
+                      <div class="radio">
+                        <input type="radio" name="gridRadios" id="monthly" [checked]="pattern=='monthly'" (change)="pattern='monthly'">
+                        <label for="monthly">Monthly</label>
+                      </div>
+                    </td>
+                    <td width="75%">
+                      <ng-container *ngIf="pattern=='daily'">
+                        <div class="row">
+                          <div class="radio">
+                            <input type="radio" id="dayEvery" [checked]="daily=='dailyEvery'" (change)="daily='dailyEvery'">
+                            <label class="pattern-detail" for="dayEvery">Every</label>
+                          </div>
+                          <input class="small-input" type="number">
+                          <span>days</span>
+                        </div>
+                        <div class="row">
+                          <div class="radio">
+                            <input type="radio" id="dayWeekDay" [checked]="daily=='dailyWeekDay'" (change)="daily='dailyWeekDay'">
+                            <label class="pattern-detail" for="dayWeekDay">Every weekday</label>
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="pattern=='weekly'">
+                        <div>
+                          Recur every
+                          <input class="small-input" type="number"> week(s) on:
+                        </div>
+                        <div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="sunday">
+                            <label class="pattern-detail" for="sunday">Sunday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="monday">
+                            <label class="pattern-detail" for="monday">Monday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="tuesday">
+                            <label class="pattern-detail" for="tuesday">Tuesday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="wednesday">
+                            <label class="pattern-detail" for="wednesday">Wednesday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="thursday">
+                            <label class="pattern-detail" for="thursday">Thursday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="friday">
+                            <label class="pattern-detail" for="friday">Friday</label>
+                          </div>
+                          <div class="checkbox-inline">
+                            <input type="checkbox" id="saturday">
+                            <label class="pattern-detail" for="saturday">Saturday</label>
+                          </div>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="pattern=='monthly'">
+                        <div>
+                          <div class="row">
+                            <div class="radio">
+                              <input type="radio" id="monthByDay" [checked]="monthly=='monthByDay'" (change)="monthly='monthByDay'">
+                              <label class="pattern-detail" for="monthByDay">Day</label>
+                            </div>
+                            <input class="small-input" type="number">
+                            <span>of every</span>
+                            <input class="small-input" type="number">
+                            <span>month(s)</span>
+                          </div>
+                          <div class="row">
+                            <div class="radio">
+                              <input type="radio" id="monthByWeekday" [checked]="monthly=='monthByWeekDay'" (change)="monthly='monthByWeekDay'">
+                              <label class="pattern-detail" for="monthByWeekday">The</label>
+                            </div>
+                            <div class="select">
+                              <select id="weekOfMonth">
+                                <option>first</option>
+                                <option>second</option>
+                                <option>third</option>
+                                <option>fourth</option>
+                                <option>last</option>
+                              </select>
+                            </div>
+                            <div class="select">
+                              <select id="dayOfWeek">
+                                <option>Sunday</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                              </select>
+                            </div>
+                            <span>of every</span>
+                            <input class="small-input" type="number">
+                            <span>month(s)</span>
+                          </div>
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+
+                </table>
+                <label>Range of recurrance</label>
+                <table>
+                  <tr>
+                    <td>
+                      <div class="radio">
+                        <input type="radio" id="endBy" [checked]="range=='endBy'" (change)="range='endBy'">
+                        <label class="pattern-detail" for="endBy">End by</label>
+                        <input type="date">
+                      </div>
+                      <div class="radio">
+                        <input type="radio" id="endAfter" [checked]="range=='endAfter'" (change)="range='endAfter'">
+                        <label class="pattern-detail" for="endAfter">End after</label>
+                        <input class="small-input" type="number">
+                        <span>occurrances</span>
+                      </div>
+
+                    </td>
+                  </tr>
+                </table>
+              </section>
+            </div>
+          </ng-container>
+        </ng-container>
       </section>
+
     </div>
 
     <div class="modal-footer">
-      <button (click)="close()" class="btn btn-default">Cancel</button>
-
+      <button (click)="close()" type="button" class="btn btn-default">Cancel</button>
+      <button *ngIf="action=='delete'" type="button" (click)="delete()" class="btn btn-primary">Delete</button>
       <button *ngIf="canEdit" type="submit" class="btn btn-primary" [disabled]="!eventForm.valid">OK</button>
     </div>
 

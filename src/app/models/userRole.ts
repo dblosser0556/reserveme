@@ -2,7 +2,7 @@ export interface UserRole {
     id: number;
     name: string;
     maxReservationPeriod: number;
-    maxReserervationsPerDay: number;
+    maxReservationsPerDay: number;
     maxReservationsPerPeriod: number;
     isAdmin: boolean;
 
