@@ -133,13 +133,13 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   actions: CalendarEventAction[] = [
     {
-      label: '<i class="fa fa-fw fa-pencil">e</i>',
+      label: '<i class="fas fa-edit"></i>',
       onClick: ({ event }: { event: CalendarEvent }): void => {
         this.handleEvent('Edit', event);
       }
     },
     {
-      label: '<i class="fa fa-fw fa-times">d</i>',
+      label: '<i class="fas fa-times"></i>',
       onClick: ({ event }: { event: CalendarEvent }): void => {
         this.events = this.events.filter(iEvent => iEvent !== event);
         this.handleEvent('Delete', event);
@@ -198,6 +198,10 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     return date >= this.minDate && date <= this.maxDate;
   }
 
+  canReserve(date: Date): boolean {
+    return this.auth.canReserve(date);
+  }
+
   changeDate(date: Date): void {
     this.viewDate = date;
     this.dateOrViewChanged();
@@ -229,8 +233,10 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       if (!this.dateIsValid(day.date)) {
         day.cssClass = 'cal-disabled';
       }
-      if (isSameDay(this.selectedDay.date, day.date){
-        day.cssClass = 'cal-day-selected';
+      if (this.selectedDay !== undefined) {
+        if (isSameDay(this.selectedDay.date, day.date)) {
+          day.cssClass = 'cal-day-selected';
+        }
       }
     });
   }
@@ -249,8 +255,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       }
 
       this.selectedDay = day;
-      this.selectedDay.cssClass = 'cal-day-selected';
-      day.cssClass = 'cal-day-selected';
+      // this.selectedDay.cssClass = 'cal-day-selected';
+      // day.cssClass = 'cal-day-selected';
       this.viewDate = day.date;
       if (
         (isSameDay(this.viewDate, day.date) && this.activeDayIsOpen === true) ||
@@ -339,6 +345,33 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     };
 
     this.handleEvent('Create', _event);
+  }
+
+  deleteEvent(event: CalendarEvent) {
+    const reservation = {
+      id: Number(event.id),
+      title: event.title,
+      startDateTime: event.start,
+      endDateTime: event.end,
+      type: resType.member,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ResourceId: this.resource.id,
+      UserId: this.auth.userId
+    };
+    this.reservationService.delete(reservation.id).subscribe(
+      res => {
+        const results: ApiMessage = res;
+        this.toast.success(results.message, 'Success');
+        // remove the reservation for the current user list 
+        const index = this.auth.reservations.findIndex(_res => _res.id === reservation.id);
+        if (index > -1) {
+          this.auth.reservations.splice(index, 0);
+        }
+        this.dateOrViewChanged();
+
+      }
+    );
   }
 
   saveEvent(event: CalendarEvent) {

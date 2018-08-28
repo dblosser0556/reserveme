@@ -5,7 +5,8 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService } from './message.service';
 import { User, Facility, UserRole, RegisterUser, Reservation } from '../models';
-import { UserRoleService } from './user-role.service';
+import * as moment from 'moment';
+
 
 interface ResultMessage {
   success: string;
@@ -21,14 +22,13 @@ export class AuthService {
   private _userRole: UserRole = null;
   private _loggedIn = false;
   private _reservations: Reservation[] = [];
-  
+
   private _authNavStatusSource = new BehaviorSubject<boolean>(false);
   // Observable navItem stream
   authNavStatus$ = this._authNavStatusSource.asObservable();
 
 
-  constructor(private http: HttpClient, private messageService: MessageService,
-    private userRoleService: UserRoleService) { }
+  constructor(private http: HttpClient, private messageService: MessageService) { }
 
   private log(message: string) {
     this.messageService.add(`MemberService:  ${message}`);
@@ -110,7 +110,7 @@ export class AuthService {
   public get reservations(): Reservation[] {
     return this._reservations;
   }
-  
+
   public get isAdmin(): boolean {
     return (this._userRole.isAdmin);
   }
@@ -127,6 +127,34 @@ export class AuthService {
     return this._user.first + ' ' + this._user.last;
   }
 
+  public canReserve(eventDate: Date): boolean {
+    if (this.reservations.length >= this.userRole.maxReservationsPerPeriod) {
+      return false;
+    }
+
+    const checkDate = moment(eventDate);
+    const availableDays = this.getAvailableDates();
+    return availableDays.some(day => checkDate.isSame(day, 'day'));
+  }
+
+  public getAvailableDates(eventId?: number): string[] {
+    const availableDays = new Array<string>();
+    const maxDays = (this.userRole.maxReservationPeriod > 185) ? 185 : this.userRole.maxReservationPeriod;
+    for (let i = 0; i <= maxDays; i++) {
+      // make sure the current user has less than the maximimum reservations per day
+      let found = 0;
+      const date = moment().add(i, 'days');
+      for (const reservation of this.reservations) {
+        if (date.isSame(reservation.startDateTime, 'day') && reservation.id !== eventId) {
+          found++;
+        }
+      }
+      if (found < this.userRole.maxReservationsPerDay) {
+        availableDays.push(date.format('YYYY-MM-DD'));
+      }
+    }
+    return availableDays;
+  }
   /**
  * Handle Http operation that failed.
  * Let the app continue.

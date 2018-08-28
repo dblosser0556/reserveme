@@ -48,11 +48,11 @@
 <div>
 
     <button
-      class="btn btn-primary" [disabled]="!dateIsValid(viewDate)"
+      class="btn btn-primary" [disabled]="!canReserve(viewDate)"
       (click)="addEvent()">
       Add new
     </button>
     <div class="clearfix"></div>
 </div>
   
-<app-edit-reservation-dialog (onOK)="saveEvent($event)"></app-edit-reservation-dialog>
+<app-edit-reservation-dialog (onOK)="saveEvent($event)" (onDelete)="deleteEvent($event)"></app-edit-reservation-dialog>
