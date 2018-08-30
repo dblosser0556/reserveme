@@ -105,8 +105,8 @@ export class ReservationService extends AbstractRestService<Reservation> {
 
       // make sure the time is not reserved
       for (let j = 0; j < reservations.length; j++) {
-        const _startDate = moment(reservations[j].startDateTime);
-        const _endDate = moment(reservations[j].endDateTime);
+        const _startDate = moment(reservations[j].start);
+        const _endDate = moment(reservations[j].end);
         const _midNight = _startDate.clone().startOf('day');
         const _startTime = _startDate.diff(_midNight, 'minutes');
         const _endTime = _endDate.diff(_midNight, 'minutes');

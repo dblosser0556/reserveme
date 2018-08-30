@@ -1,19 +1,13 @@
 import { Component, Output, EventEmitter, ViewChild, OnChanges } from '@angular/core';
-import { Reservation, Resource, Facility } from '../../../models';
+import { EventActionDetail, Resource, Facility } from '../../../models';
 import { AutofocusDirective } from '../../../directives/autofocus.directive';
 import { CalendarEvent } from 'angular-calendar';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { ReservationService, AuthService } from '../../../services';
-import { Observable } from 'rxjs';
+import { Observable, noop } from 'rxjs';
+import { RRule, rrulestr, Weekday } from 'rrule';
 
-export interface DetailsData {
-  action: string;
-  memberName: string;
-  facility: Facility;
-  resource: Resource;
-  event: CalendarEvent;
-}
 
 @Component({
   selector: 'app-edit-reservation-dialog',
@@ -23,19 +17,34 @@ export interface DetailsData {
 export class EditReservationDialogComponent implements OnChanges {
   @ViewChild(AutofocusDirective) autofocus: AutofocusDirective;
   // tslint:disable-next-line:no-output-on-prefix
-  @Output() onOK: EventEmitter<CalendarEvent> = new EventEmitter<CalendarEvent>();
+  @Output() onOK: EventEmitter<EventActionDetail> = new EventEmitter<EventActionDetail>();
   // tslint:disable-next-line:no-output-on-prefix
-  @Output() onDelete: EventEmitter<CalendarEvent> = new EventEmitter<CalendarEvent>();
+  @Output() onDelete: EventEmitter<EventActionDetail> = new EventEmitter<EventActionDetail>();
   eventForm: FormGroup;
   show = false;
 
   // handle recurring features
   canRecur = false;
   showRecurring = false;
-  pattern = 'weekly';
+
+  // RRule Frequencies
+  DAILY = RRule.DAILY;
+  WEEKLY = RRule.WEEKLY;
+  MONTHLY = RRule.MONTHLY;
+
+  // RRule WeekDay
+  SU = RRule.SU;
+  MO = RRule.MO;
+  TU = RRule.TU;
+  WE = RRule.WE;
+  TH = RRule.TH;
+  FR = RRule.FR;
+  SA = RRule.SA;
+
   daily = 'dailyEvery';
   monthly = 'monthByDay';
   range = 'endBy';
+  pattern = this.WEEKLY;
 
   event: CalendarEvent;
   action: string;
@@ -52,7 +61,7 @@ export class EditReservationDialogComponent implements OnChanges {
   // need to be added to facility
   facilityMaxReservationDays = 185;
   facilityDefaultOccurnaces = 10;
-
+  rrule = new RRule();
 
   constructor(private fb: FormBuilder, private resService: ReservationService, private auth: AuthService) {
     this.createForm();
@@ -67,15 +76,40 @@ export class EditReservationDialogComponent implements OnChanges {
       title: this.event.title,
       eventDate: date,
       startTime: startTime,
-      endTime: endTime
+      endTime: endTime,
+      pattern: this.rrule.options.freq,
+      dailyEveryDays: this.rrule.options.interval,
+      weeklyWeeks: this.rrule.options.interval,
+      weeklySunday: this.rrule.options.byweekday.find(val => val === 0),
+      weeklyMonday: this.rrule.options.byweekday.find(val => val === 1),
+      weeklyTuesday: this.rrule.options.byweekday.find(val => val === 2),
+      weeklyWednesday: this.rrule.options.byweekday.find(val => val === 3),
+      weeklyThursday: this.rrule.options.byweekday.find(val => val === 4),
+      weeklyFriday: this.rrule.options.byweekday.find(val => val === 5),
+      weeklySaturday: this.rrule.options.byweekday.find(val => val === 6),
+      monthlyDay: this.rrule.options.bymonthday[0],
+      monthlyNoMonths: this.rrule.options.freq
+
     });
   }
 
-  async open(detailsData: DetailsData) {
+  async open(detailsData: EventActionDetail, facility: Facility, resource: Resource, userName: string) {
 
 
     this.event = detailsData.event;
-    this.memberName = detailsData.memberName;
+    if (detailsData.rrule !== '') {
+      this.rrule = RRule.fromString(detailsData.rrule);
+    } else {
+      this.rrule = new RRule({
+        freq: RRule.MONTHLY,
+        dtstart: moment(this.event.start).toDate(),
+        interval: 1,
+        count: 10,
+        byweekday: RRule.MO
+      });
+    }
+
+    this.memberName = userName;
     this.action = detailsData.action;
 
     // only allow editing the form if type edited.
@@ -85,8 +119,8 @@ export class EditReservationDialogComponent implements OnChanges {
     } else {
       this.canEdit = false;
     }
-    this.facility = detailsData.facility;
-    this.resource = detailsData.resource;
+    this.facility = facility;
+    this.resource = resource;
     this.maxDate = moment().add(this.auth.userRole.maxReservationPeriod, 'days').toDate();
     this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
 
@@ -128,14 +162,14 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   onSubmit() {
-    const event = this.getEventFromFormValue(this.eventForm.getRawValue());
-    this.onOK.emit(event);
+    const eventDetails = this.getEventFromFormValue(this.eventForm.getRawValue());
+    this.onOK.emit(eventDetails);
     this.show = false;
   }
 
   onRemove() {
-    const event = this.getEventFromFormValue(this.eventForm.getRawValue());
-    this.onDelete.emit(event);
+    const eventDetails = this.getEventFromFormValue(this.eventForm.getRawValue());
+    this.onDelete.emit(eventDetails);
     this.show = false;
   }
 
@@ -196,10 +230,60 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
 
-  getEventFromFormValue(formValue: any): CalendarEvent {
+  getEventFromFormValue(formValue: any): EventActionDetail {
     const startTime = formValue.eventDate + ' ' + formValue.startTime;
     const endTime = formValue.eventDate + ' ' + formValue.endTime;
+    let rrule;
+    switch (formValue.pattern) {
 
+      case RRule.MONTHLY:
+        rrule = {
+          freq: RRule.MONTHLY,
+          dtstart: new Date(formValue.eventDate),
+          interval: formValue.monthlyNoMonths,
+          until: new Date(formValue.rangeEndByDate)
+        };
+        break;
+
+      case RRule.WEEKLY:
+        const weekDays = new Array<Weekday>();
+        // tslint:disable-next-line:no-unused-expression
+        (formValue.weeklySunday) ? weekDays.push(this.SU) : '';
+        (formValue.weeklyMonday) ? weekDays.push(this.MO) : '';
+        (formValue.weeklyTuesday) ? weekDays.push(this.TU) : '';
+        (formValue.weeklyWednesday) ? weekDays.push(this.WE) : '';
+        (formValue.weeklyThursday) ? weekDays.push(this.TH) : '';
+        (formValue.weeklyFriday) ? weekDays.push(this.FR) : '';
+        (formValue.weeklySaturday) ? weekDays.push(this.SA) : '';
+
+        rrule = {
+          freq: RRule.WEEKLY,
+          dtstart: new Date(formValue.eventDate),
+          interval: formValue.weeklyWeeks,
+          byweekday: weekDays,
+          until: new Date(formValue.rangeEndByDate)
+        };
+
+        break;
+
+      case RRule.DAILY:
+
+        break;
+    }
+
+
+     const rule = new RRule(
+        Object.assign({}, rrule)
+     );
+   /*  const rule = new RRule({
+      freq: RRule.WEEKLY,
+      interval: 5,
+      byweekday: [RRule.MO, RRule.FR],
+      dtstart: new Date(Date.UTC(2012, 1, 1, 10, 30)),
+      until: new Date(Date.UTC(2012, 12, 31))
+    }); */
+
+    console.log(rule.toString());
 
     const event = {
       id: formValue.id,
@@ -207,7 +291,12 @@ export class EditReservationDialogComponent implements OnChanges {
       start: moment(startTime).toDate(),
       end: moment(endTime).toDate()
     };
-    return event;
+    const details = {
+      action: this.action,
+      event: event,
+      rrule: rule.toString()
+    };
+    return details;
   }
 
   dateChangeHandler(event$: any) {
@@ -223,37 +312,37 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   setWeekly(event$: any) {
-    this.eventForm.get('weeklySunday').setValue(0);
-    this.eventForm.get('weeklyMonday').setValue(0);
-    this.eventForm.get('weeklyTuesday').setValue(0);
-    this.eventForm.get('weeklyWednesday').setValue(0);
-    this.eventForm.get('weeklyThursday').setValue(0);
-    this.eventForm.get('weeklyFriday').setValue(0);
-    this.eventForm.get('weeklySaturday').setValue(0);
+    this.eventForm.get('weeklySunday').setValue(false);
+    this.eventForm.get('weeklyMonday').setValue(false);
+    this.eventForm.get('weeklyTuesday').setValue(false);
+    this.eventForm.get('weeklyWednesday').setValue(false);
+    this.eventForm.get('weeklyThursday').setValue(false);
+    this.eventForm.get('weeklyFriday').setValue(false);
+    this.eventForm.get('weeklySaturday').setValue(false);
 
     this.eventForm.get('weeklyWeeks').setValue(1);
     const weekDay = moment(event$).weekday();
     switch (weekDay) {
       case 0:
-        this.eventForm.get('weeklySunday').setValue(1);
+        this.eventForm.get('weeklySunday').setValue(true);
         return;
       case 1:
-        this.eventForm.get('weeklyMonday').setValue(1);
+        this.eventForm.get('weeklyMonday').setValue(true);
         return;
       case 2:
-        this.eventForm.get('weeklyTuesday').setValue(1);
+        this.eventForm.get('weeklyTuesday').setValue(true);
         return;
       case 3:
-        this.eventForm.get('weeklyWednesday').setValue(1);
+        this.eventForm.get('weeklyWednesday').setValue(true);
         return;
       case 4:
-        this.eventForm.get('weeklyThursday').setValue(1);
+        this.eventForm.get('weeklyThursday').setValue(true);
         return;
       case 5:
-        this.eventForm.get('weeklyFriday').setValue(1);
+        this.eventForm.get('weeklyFriday').setValue(true);
         return;
       case 6:
-        this.eventForm.get('weeklySaturday').setValue(1);
+        this.eventForm.get('weeklySaturday').setValue(true);
         return;
 
 
@@ -276,11 +365,11 @@ export class EditReservationDialogComponent implements OnChanges {
   setRange(eventDate: any, occurances: number) {
     const eventDay = moment(eventDate).toDate();
 
-    if (this.pattern === 'daily') {
+    if (this.pattern === this.DAILY) {
       this.eventForm.get('rangeEndAfterNo').setValue(occurances);
       this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(occurances, 'days').format('YYYY-MM-DD'));
     }
-    if (this.pattern === 'weekly') {
+    if (this.pattern === this.WEEKLY) {
       if (moment(eventDay).add(occurances, 'weeks')
         .isBefore(moment(eventDay).add(this.facilityMaxReservationDays, 'days'))) {
         this.eventForm.get('rangeEndAfterNo').setValue(occurances);
@@ -292,7 +381,7 @@ export class EditReservationDialogComponent implements OnChanges {
         this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(allowedOccurances, 'weeks').format('YYYY-MM-DD'));
       }
     }
-    if (this.pattern === 'monthly') {
+    if (this.pattern === this.MONTHLY) {
       if (moment(eventDay).add(occurances, 'months')
         .isBefore(moment(eventDay).add(this.facilityMaxReservationDays, 'days'))) {
         this.eventForm.get('rangeEndAfterNo').setValue(occurances);
@@ -314,26 +403,26 @@ export class EditReservationDialogComponent implements OnChanges {
     if ($event.target.id === 'monthly' || $event.target.id === 'weekly' || $event.target.id === 'daily') {
       occurances = this.eventForm.get('rangeEndAfterNo').value;
       switch (this.pattern) {
-        case 'daily':
+        case this.DAILY:
           calcEndDate = moment(this.eventDate.value).add(occurances, 'days');
           break;
-        case 'weekly':
+        case this.WEEKLY:
           calcEndDate = moment(this.eventDate.value).add(occurances, 'weeks');
           break;
-        case 'monthly':
+        case this.MONTHLY:
           calcEndDate = moment(this.eventDate.value).add(occurances, 'months');
 
       }
     } else if ($event.target.id === 'rangeEndAfterNo') {
       // calculate the projected date based on the pass occurnaces
       switch (this.pattern) {
-        case 'daily':
+        case this.DAILY:
           calcEndDate = moment(this.eventDate.value).add($event.target.value, 'days');
           break;
-        case 'weekly':
+        case this.WEEKLY:
           calcEndDate = moment(this.eventDate.value).add($event.target.value, 'weeks');
           break;
-        case 'monthly':
+        case this.MONTHLY:
           calcEndDate = moment(this.eventDate.value).add($event.target.value, 'months');
 
       }
@@ -352,13 +441,13 @@ export class EditReservationDialogComponent implements OnChanges {
 
     // calculate occurances and set
     switch (this.pattern) {
-      case 'daily':
+      case this.DAILY:
         occurances = moment.duration(endDate.diff(this.eventDate.value)).asDays();
         break;
-      case 'weekly':
+      case this.WEEKLY:
         occurances = moment.duration(endDate.diff(this.eventDate.value)).asWeeks();
         break;
-      case 'monthly':
+      case this.MONTHLY:
         occurances = moment.duration(endDate.diff(this.eventDate.value)).asMonths();
     }
     occurances = Math.round(occurances);
@@ -366,23 +455,23 @@ export class EditReservationDialogComponent implements OnChanges {
 
   }
 
-  handlePatternChange(event$: any, pattern: string) {
+  handlePatternChange(event$: any, pattern: number) {
     this.pattern = pattern;
     this.handleRangeChange(event$);
   }
   // set occurances to max date
 
   async getAvailableStartTimes(event$: any) {
-    const startDateTime = this.eventDate.value + ' ' + event$.target.value;
+    const start = this.eventDate.value + ' ' + event$.target.value;
     this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
-      this.resource, this.facility, moment(startDateTime).toDate());
+      this.resource, this.facility, moment(start).toDate());
 
   }
 
   async getAvailableEndTimes(event$: any) {
-    const endDateTime = this.eventDate.value + ' ' + event$.target.value;
+    const end = this.eventDate.value + ' ' + event$.target.value;
     this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
-      this.resource, this.facility, moment(endDateTime).toDate());
+      this.resource, this.facility, moment(end).toDate());
   }
 
   getAvailableDays(event$: any) {

@@ -4,7 +4,7 @@ import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService } from './message.service';
-import { User, Facility, UserRole, RegisterUser, Reservation } from '../models';
+import { User, Facility, UserRole, RegisterUser, Reservation, ApiMessage } from '../models';
 import * as moment from 'moment';
 
 
@@ -38,16 +38,21 @@ export class AuthService {
     return this.http.post<{ token: string }>('/v1/users/login', { email: username, password: password })
       .pipe(
         map(result => {
+          const success = result['success'];
+          if (success) {
           const helper = new JwtHelperService();
           const token = result.token;
-          this._user = result['user'];
-          this._facility = this._user['Facility'];
-          this._userRole = this._user['UserRole'];
+          this._user = Object.assign({}, result['user']);
+          this._facility = this._user.Facility;
+          this._userRole = this._user.UserRole;
           this._reservations = this._user.Reservations;
           this._loggedIn = true;
 
           localStorage.setItem('access_token', token.substr(7));
           return true;
+          } else {
+            return false;
+          }
         }),
         catchError(this.handleError),
         tap(_ => {
@@ -145,7 +150,7 @@ export class AuthService {
       let found = 0;
       const date = moment().add(i, 'days');
       for (const reservation of this.reservations) {
-        if (date.isSame(reservation.startDateTime, 'day') && reservation.id !== eventId) {
+        if (date.isSame(reservation.start, 'day') && reservation.id !== eventId) {
           found++;
         }
       }

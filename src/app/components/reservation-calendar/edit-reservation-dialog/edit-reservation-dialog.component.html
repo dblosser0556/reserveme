@@ -84,23 +84,23 @@
                   <tr>
                     <td width="25%">
                       <div class="radio">
-                        <input type="radio" name="pattern" id="daily" [checked]="pattern=='daily'" formControlName="pattern" (change)="handlePatternChange($event,'daily')">
+                        <input type="radio" id="daily" [value]="DAILY" formControlName="pattern" (change)="handlePatternChange($event, DAILY)">
                         <label for="daily">Daily</label>
                       </div>
                       <div class="radio">
-                        <input type="radio" name="pattern" id="weekly" [checked]="pattern=='weekly'" formControlName="pattern" (change)="handlePatternChange($event,'weekly')">
+                        <input type="radio" id="weekly" [value]="WEEKLY" formControlName="pattern" (change)="handlePatternChange($event,WEEKLY)">
                         <label for="weekly">Weekly</label>
                       </div>
                       <div class="radio">
-                        <input type="radio" name="pattern" id="monthly" [checked]="pattern=='monthly'" formControlName="pattern" (change)="handlePatternChange($event,'monthly')">
+                        <input type="radio" id="monthly" [value]="MONTHLY" formControlName="pattern" (change)="handlePatternChange($event, MONTHLY)">
                         <label for="monthly">Monthly</label>
                       </div>
                     </td>
                     <td width="75%">
-                      <ng-container *ngIf="pattern=='daily'">
+                      <ng-container *ngIf="pattern==DAILY">
                         <div class="row">
                           <div class="radio">
-                            <input type="radio" id="dailyEvery" formControlName="dailyEvery" [checked]="daily=='dailyEvery'" (change)="daily='dailyEvery'">
+                            <input type="radio" id="dailyEvery" [value]="dailyEvery" formControlName="daily" [checked]="daily=='dailyEvery'" (change)="daily='dailyEvery'">
                             <label class="pattern-detail" for="dayEvery">Every</label>
                           </div>
                           <input class="small-input" formControlName="dailyEveryDays" type="number">
@@ -108,19 +108,19 @@
                         </div>
                         <div class="row">
                           <div class="radio">
-                            <input type="radio" id="dailyWeekDays" formControlName="dailyWeekDays"[checked]="daily=='dailyWeekDays'" (change)="daily='dailyWeekDay'">
+                            <input type="radio" id="dailyWeekDays"  [value]="dailyWeekDay" formControlName="daily" [checked]="daily=='dailyWeekDays'" (change)="daily='dailyWeekDay'">
                             <label class="pattern-detail" for="dailyWeekDays">Every weekday</label>
                           </div>
                         </div>
                       </ng-container>
-                      <ng-container *ngIf="pattern=='weekly'">
+                      <ng-container *ngIf="pattern==WEEKLY">
                         <div>
                           Recur every
                           <input class="small-input" formControlName="weeklyWeeks" type="number"> week(s) on:
                         </div>
                         <div>
                           <div class="checkbox-inline">
-                            <input type="checkbox" formControlName="weeklySunday" id="sunday">
+                            <input type="checkbox"  formControlName="weeklySunday" id="sunday">
                             <label class="pattern-detail" for="sunday">Sunday</label>
                           </div>
                           <div class="checkbox-inline">
@@ -149,7 +149,7 @@
                           </div>
                         </div>
                       </ng-container>
-                      <ng-container *ngIf="pattern=='monthly'">
+                      <ng-container *ngIf="pattern==MONTHLY">
                         <div>
                           <div class="row">
                             <div class="radio">
@@ -168,11 +168,11 @@
                             </div>
                             <div class="select">
                               <select id="monthlyWeekOfMonth" formControlName="monthlyWeekOfMonth">
-                                <option [value]="0">first</option>
-                                <option [value]="1">second</option>
-                                <option [value]="2">third</option>
-                                <option [value]="3">fourth</option>
-                                <option [value]="4">last</option>
+                                <option [value]="1">first</option>
+                                <option [value]="2">second</option>
+                                <option [value]="3">third</option>
+                                <option [value]="4">fourth</option>
+                                <option [value]="-1">last</option>
                               </select>
                             </div>
                             <div class="select">
@@ -201,18 +201,18 @@
                   <tr>
                     <td>
                       <div class="radio">
-                        <input type="radio" id="endBy" name="range" formControlName="range" [checked]="range=='endBy'" (change)="range='endBy'">
+                        <input type="radio" id="endBy" name="range" formControlName="range" [value]="'endBy'" [checked]="range=='endBy'" (change)="range='endBy'">
                         <label class="pattern-detail" for="endBy">End by</label>
                         <input type="date" id="rangeEndByDate" formControlName="rangeEndByDate" (change)="handleRangeChange($event)" >
                       </div>
                       <div class="radio">
-                        <input type="radio" id="endAfter" name="range" formControlName="range" [checked]="range=='endAfter'" (change)="range='endAfter'">
+                        <input type="radio" id="endAfter" name="range" formControlName="range" [value]="'endAfter'" [checked]="range=='endAfter'" (change)="range='endAfter'">
                         <label class="pattern-detail" for="endAfter">End after</label>
                         <input class="small-input" id="rangeEndAfterNo" type="number" formControlName="rangeEndAfterNo" (change)="handleRangeChange($event)">
                         <span [ngSwitch]="pattern">
-                          <ng-template [ngSwitchCase]="'daily'"]>days</ng-template>
-                          <ng-template [ngSwitchCase]="'weekly'"]>weeks</ng-template>
-                          <ng-template [ngSwitchCase]="'monthly'"]>months</ng-template>
+                          <ng-template [ngSwitchCase]="DAILY">days</ng-template>
+                          <ng-template [ngSwitchCase]="WEEKLY">weeks</ng-template>
+                          <ng-template [ngSwitchCase]="MONTHLY">months</ng-template>
                         </span>
                       </div>
 

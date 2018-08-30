@@ -17,15 +17,17 @@ import {
   isSameMonth,
   isSameDay,
   addMinutes,
+  getMinutes,
   format,
   isThisQuarter
 } from 'date-fns';
 import { ReservationService, FacilityService, AuthService, ResourceService } from '../../../services';
-import { Reservation, Facility, Resource, resType } from '../../../models';
+import { Reservation, Facility, Resource, resType, EventActionDetail } from '../../../models';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EditReservationDialogComponent } from '../edit-reservation-dialog/edit-reservation-dialog.component';
 import { ApiMessage } from '../../../models/apiMessage';
 import { ToastrService } from 'ngx-toastr';
+import RRule, { RRuleSet } from 'rrule';
 
 
 const colors: any = {
@@ -113,13 +115,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   selectedDay: CalendarMonthViewDay;
   events: CalendarEvent[] = [];
 
-  detailsData: {
-    action: string;
-    facility: Facility;
-    resource: Resource;
-    memberName: string;
-    event: CalendarEvent;
-  };
+  detailsData: EventActionDetail;
 
   openDetails = false;
 
@@ -243,8 +239,8 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   handleEvent(action: string, event: CalendarEvent): void {
     const userName = this.auth.userName;
-    this.detailsData = { action: action, facility: this.facility, resource: this.resource, memberName: userName, event: event };
-    this.modal.open(this.detailsData);
+    this.detailsData = { action: action, rrule: event.meta.rrule, event: event };
+    this.modal.open(this.detailsData, this.facility, this.resource, userName);
   }
 
 
@@ -305,19 +301,49 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
                 color = colors.green;
                 break;
             }
-            const event: CalendarEvent = {
-              id: reservation.id,
-              title: reservation.title,
-              start: new Date(reservation.startDateTime),
-              end: new Date(reservation.endDateTime),
-              color: color
-            };
-            if (reservation.UserId === this.auth.userId) {
-              console.log('event', reservation.title, 'id', reservation.UserId, 'auth', this.auth.userId);
-              event.actions = this.actions;
+            let event: CalendarEvent;
+            if (reservation.rrule !== '') {
+              const rrule = RRuleSet.fromString(reservation.rrule);
+              rrule.all().forEach(date => {
+                const startTime = getMinutes(reservation.start);
+                const endTime = getMinutes(reservation.end);
+                event = {
+                  id: reservation.id,
+                  title: reservation.title,
+                  start: addMinutes(date, startTime),
+                  end: addMinutes(date, endTime),
+                  color: color,
+                  meta: {
+                    rrule: reservation.rrule
+                  }
+                };
+
+                if (reservation.UserId === this.auth.userId) {
+                  console.log('event', reservation.title, 'id', reservation.UserId, 'auth', this.auth.userId);
+                  event.actions = this.actions;
+                }
+
+                events.push(event);
+              });
+            } else {
+              event = {
+                id: reservation.id,
+                title: reservation.title,
+                start: new Date(reservation.start),
+                end: new Date(reservation.end),
+                color: color,
+                meta: {
+                  rrule: ''
+                }
+              };
+              if (reservation.UserId === this.auth.userId) {
+                console.log('event', reservation.title, 'id', reservation.UserId, 'auth', this.auth.userId);
+                event.actions = this.actions;
+              }
+
+              events.push(event);
             }
 
-            events.push(event);
           });
           this.events = events;
           this.isLoading = false;
@@ -341,30 +367,23 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       start: _start,
       end: _end,
       title: _title,
-      id: 0
+      id: 0,
+      meta: {
+        rrule: ''
+      }
     };
 
     this.handleEvent('Create', _event);
   }
 
-  deleteEvent(event: CalendarEvent) {
-    const reservation = {
-      id: Number(event.id),
-      title: event.title,
-      startDateTime: event.start,
-      endDateTime: event.end,
-      type: resType.member,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      ResourceId: this.resource.id,
-      UserId: this.auth.userId
-    };
-    this.reservationService.delete(reservation.id).subscribe(
+  deleteEvent(eventDetail: EventActionDetail) {
+    const event = eventDetail.event;
+    this.reservationService.delete(Number(event.id)).subscribe(
       res => {
         const results: ApiMessage = res;
         this.toast.success(results.message, 'Success');
-        // remove the reservation for the current user list 
-        const index = this.auth.reservations.findIndex(_res => _res.id === reservation.id);
+        // remove the reservation for the current user list
+        const index = this.auth.reservations.findIndex(_res => _res.id === Number(event.id));
         if (index > -1) {
           this.auth.reservations.splice(index, 0);
         }
@@ -374,18 +393,28 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     );
   }
 
-  saveEvent(event: CalendarEvent) {
-
+  saveEvent(eventDetail: EventActionDetail) {
+    const event = eventDetail.event;
+    let rruleStart, rruleEnd;
+    if (eventDetail.rrule !== '') {
+      const rrule = RRule.fromString(eventDetail.rrule);
+      rruleStart = rrule.options.dtstart;
+      rruleEnd = rrule.options.until;
+    } else {
+      rruleStart = event.start;
+      rruleEnd = event.end;
+    }
     const reservation = {
       id: Number(event.id),
       title: event.title,
-      startDateTime: event.start,
-      endDateTime: event.end,
+      start: event.start,
+      end: event.end,
       type: resType.member,
-      createdAt: new Date(),
-      updatedAt: new Date(),
       ResourceId: this.resource.id,
-      UserId: this.auth.userId
+      UserId: this.auth.userId,
+      rrule: eventDetail.rrule,
+      rruleStart: rruleStart,
+      rruleEnd: rruleEnd
     };
 
     if (reservation.id === 0) {

@@ -5,6 +5,7 @@ export interface UserRole {
     maxReservationsPerDay: number;
     maxReservationsPerPeriod: number;
     isAdmin: boolean;
-
+    isSuperAdmin: boolean;
+    canUseRecurring: boolean;
     FacilityId: number;
 }

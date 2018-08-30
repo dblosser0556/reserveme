@@ -7,11 +7,14 @@ export enum resType {
 export interface Reservation {
     id: number;
     title: string;
-    startDateTime: Date;
-    endDateTime: Date;
+    start: Date;
+    end: Date;
     type: resType;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
+    rrule?: string;
+    rruleStart?: Date;
+    rruleEnd?: Date;
     ResourceId: number;
     UserId: number;
 }
