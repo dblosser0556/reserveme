@@ -6,3 +6,4 @@ export * from './userRole';
 export * from './registerUser';
 export * from './eventActionDetail';
 export * from './apiMessage';
+export * from './email';

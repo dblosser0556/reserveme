@@ -2,12 +2,18 @@ import { Component, Output, EventEmitter, ViewChild, OnChanges } from '@angular/
 import { EventActionDetail, Resource, Facility } from '../../../models';
 import { AutofocusDirective } from '../../../directives/autofocus.directive';
 import { CalendarEvent } from 'angular-calendar';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, ValidatorFn, AbstractControl } from '@angular/forms';
 import * as moment from 'moment';
 import { ReservationService, AuthService } from '../../../services';
-import { Observable, noop } from 'rxjs';
+import { Observable } from 'rxjs';
 import { RRule, rrulestr, Weekday } from 'rrule';
 
+function maxDateValidator(maxDate: Date) {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    const validDate = moment(control.value).isBefore(moment(maxDate));
+    return validDate ? null : { 'inValidDate': { value: control.value } };
+  };
+}
 
 @Component({
   selector: 'app-edit-reservation-dialog',
@@ -41,9 +47,13 @@ export class EditReservationDialogComponent implements OnChanges {
   FR = RRule.FR;
   SA = RRule.SA;
 
-  daily = 'dailyEvery';
-  monthly = 'monthByDay';
-  range = 'endBy';
+  BYDAY = 0;
+  BYWEEKDAY = 1;
+  EVERYDAY = 0;
+  WEEKDAYS = 1;
+
+  byDay = this.BYDAY;
+  monthly = this.EVERYDAY;
   pattern = this.WEEKLY;
 
   event: CalendarEvent;
@@ -57,6 +67,7 @@ export class EditReservationDialogComponent implements OnChanges {
   availableDays: string[];
   maxDate: Date;
   maxReservationsPerDay: number;
+  useEventDateList = true;
 
   // need to be added to facility
   facilityMaxReservationDays = 185;
@@ -64,81 +75,139 @@ export class EditReservationDialogComponent implements OnChanges {
   rrule = new RRule();
 
   constructor(private fb: FormBuilder, private resService: ReservationService, private auth: AuthService) {
+    const maxDate = moment().add(auth.userRole.maxReservationPeriod, 'days').toDate();
     this.createForm();
+    const cont = this.eventForm.get('rangeEndByDate');
+    cont.setValidators([Validators.required, maxDateValidator(maxDate)]);
   }
 
   ngOnChanges() {
-    const startTime = moment(this.event.start).format('LT');
-    const endTime = moment(this.event.end).format('LT');
-    const date = moment(this.event.start).format('YYYY-MM-DD');
-    this.eventForm.reset({
-      id: this.event.id,
-      title: this.event.title,
-      eventDate: date,
-      startTime: startTime,
-      endTime: endTime,
-      pattern: this.rrule.options.freq,
-      dailyEveryDays: this.rrule.options.interval,
-      weeklyWeeks: this.rrule.options.interval,
-      weeklySunday: this.rrule.options.byweekday.find(val => val === 0),
-      weeklyMonday: this.rrule.options.byweekday.find(val => val === 1),
-      weeklyTuesday: this.rrule.options.byweekday.find(val => val === 2),
-      weeklyWednesday: this.rrule.options.byweekday.find(val => val === 3),
-      weeklyThursday: this.rrule.options.byweekday.find(val => val === 4),
-      weeklyFriday: this.rrule.options.byweekday.find(val => val === 5),
-      weeklySaturday: this.rrule.options.byweekday.find(val => val === 6),
-      monthlyDay: this.rrule.options.bymonthday[0],
-      monthlyNoMonths: this.rrule.options.freq
+    let startTime = '';
+    let endTime = '';
+    if (this.event.end !== undefined) {
+      startTime = moment(this.event.start).format('LT');
+      endTime = moment(this.event.end).format('LT');
+    }
 
-    });
+    const date = moment(this.event.start).format('YYYY-MM-DD');
+
+    if (this.rrule.options.freq === this.DAILY) {
+      this.eventForm.reset({
+        id: this.event.id,
+        title: this.event.title,
+        eventDate: date,
+        startTime: startTime,
+        endTime: endTime,
+        useRecurring: false,
+        pattern: this.rrule.options.freq,
+        dailyEveryDays: this.rrule.options.interval,
+        rangeEndByDate: moment(this.rrule.options.until).format('YYYY-MM-DD')
+      });
+    } else if (this.rrule.options.freq === this.WEEKLY) {
+      this.eventForm.reset({
+        id: this.event.id,
+        title: this.event.title,
+        eventDate: date,
+        startTime: startTime,
+        endTime: endTime,
+        useRecurring: false,
+        pattern: this.rrule.options.freq,
+
+        weeklyInterval: this.rrule.options.interval,
+        weeklySunday: this.rrule.options.byweekday.some(val => val === 0),
+        weeklyMonday: this.rrule.options.byweekday.some(val => val === 1),
+        weeklyTuesday: this.rrule.options.byweekday.some(val => val === 2),
+        weeklyWednesday: this.rrule.options.byweekday.some(val => val === 3),
+        weeklyThursday: this.rrule.options.byweekday.some(val => val === 4),
+        weeklyFriday: this.rrule.options.byweekday.some(val => val === 5),
+        weeklySaturday: this.rrule.options.byweekday.some(val => val === 6),
+        rangeEndByDate: moment(this.rrule.options.until).format('YYYY-MM-DD')
+      });
+    } else if (this.rrule.options.freq === this.MONTHLY) {
+      this.eventForm.reset({
+        id: this.event.id,
+        title: this.event.title,
+        eventDate: date,
+        startTime: startTime,
+        endTime: endTime,
+        useRecurring: false,
+        pattern: this.MONTHLY,
+        monthly: (this.rrule.options.byweekday.length > 0) ? '' : '',
+        monthlyDayOfWeek: (this.rrule.options.byweekday.length > 0) ?
+          this.rrule.options.byweekday[0] : '',
+        monthlyWeekOfMonth: '',
+        monthDay: (this.rrule.options.bymonthday !== null) ? this.rrule.options.bymonthday : null,
+        monthlyInterval: this.rrule.options.interval,
+        rangeEndByDate: moment(this.rrule.options.until).format('YYYY-MM-DD')
+      });
+    } else {
+      this.eventForm.reset({
+        id: this.event.id,
+        title: this.event.title,
+        eventDate: date,
+        startTime: startTime,
+        endTime: endTime,
+        useRecurring: false
+      });
+    }
+
   }
 
   async open(detailsData: EventActionDetail, facility: Facility, resource: Resource, userName: string) {
 
 
     this.event = detailsData.event;
-    if (detailsData.rrule !== '') {
-      this.rrule = RRule.fromString(detailsData.rrule);
-    } else {
-      this.rrule = new RRule({
-        freq: RRule.MONTHLY,
-        dtstart: moment(this.event.start).toDate(),
-        interval: 1,
-        count: 10,
-        byweekday: RRule.MO
-      });
-    }
+
+
 
     this.memberName = userName;
     this.action = detailsData.action;
 
     // only allow editing the form if type edited.
     if (this.action === 'Edit' || this.action === 'Create') {
+      if (detailsData.rrule !== '') {
+        this.rrule = RRule.fromString(detailsData.rrule);
+      } else {
+        this.rrule = new RRule({
+          freq: RRule.WEEKLY,
+          dtstart: moment(this.event.start).toDate(),
+          interval: 1,
+          until: moment(this.event.start).add(this.facilityDefaultOccurnaces, 'weeks').toDate(),
+          byweekday: moment(this.event.start).weekday()
+        });
+      }
       this.canEdit = true;
-      this.canRecur = this.auth.userRole.isAdmin;
+
+      this.canRecur = this.auth.userRole.canUseRecurring;
+      this.facility = facility;
+      this.resource = resource;
+      this.maxDate = moment().add(this.auth.userRole.maxReservationPeriod, 'days').toDate();
+      this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
+
+      // this.getAvailableStartTimes();  // start here
+      this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
+        this.resource, this.facility, this.event.start);
+      this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
+        this.resource, this.facility, this.event.start);
+
+      if (this.auth.userRole.maxReservationPeriod <= 14) {
+        this.availableDays = this.getAvailableDays(this.event);
+        this.useEventDateList = true;
+      } else {
+        this.useEventDateList = false;
+      }
+
     } else {
       this.canEdit = false;
     }
-    this.facility = facility;
-    this.resource = resource;
-    this.maxDate = moment().add(this.auth.userRole.maxReservationPeriod, 'days').toDate();
-    this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
 
-    // this.getAvailableStartTimes();  // start here
-    this.availableStartTimes = await this.resService.getAvailableStartTimes(this.event,
-      this.resource, this.facility, this.event.start);
-    this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
-      this.resource, this.facility, this.event.start);
-    if (this.auth.userRole.maxReservationPeriod <= 14) {
-      this.availableDays = this.getAvailableDays(this.event);
-    }
 
 
     this.ngOnChanges();
-    this.setDaily(this.event.start);
-    this.setWeekly(this.event.start);
-    this.setMonthly(this.event.start);
-    this.setRange(this.event.start, this.facilityDefaultOccurnaces);
+    //  this.setDaily(this.event.start);
+    // this.setWeekly(this.event.start);
+    /// this.setMonthly(this.event.start);
+    /// this.setRange(this.event.start, this.facilityDefaultOccurnaces);
 
     this.show = true;
 
@@ -158,6 +227,9 @@ export class EditReservationDialogComponent implements OnChanges {
     if (event.keyCode === 13) {
       const _event = this.getEventFromFormValue(this.eventForm);
       this.onOK.emit(_event);
+      this.show = false;
+      this.showRecurring = false;
+      this.eventForm.get('useRecurring').setValue(false);
     }
   }
 
@@ -165,12 +237,15 @@ export class EditReservationDialogComponent implements OnChanges {
     const eventDetails = this.getEventFromFormValue(this.eventForm.getRawValue());
     this.onOK.emit(eventDetails);
     this.show = false;
+    this.showRecurring = false;
+    this.eventForm.get('useRecurring').setValue(false);
   }
 
   onRemove() {
     const eventDetails = this.getEventFromFormValue(this.eventForm.getRawValue());
     this.onDelete.emit(eventDetails);
     this.show = false;
+    this.handleRecurringClick();
   }
 
   // update the event title based on the user and times.
@@ -189,11 +264,11 @@ export class EditReservationDialogComponent implements OnChanges {
       endTime: ['', Validators.required],
 
       // add the recurring options
+      useRecurring: '',
       pattern: '',
-      dailyEvery: '',
-      dailyEveryDays: '1',
-      dailyWeekDays: '',
-      weeklyWeeks: '1',
+      byDay: '',
+      dailyInterval: '',
+      weeklyInterval: '',
       weeklySunday: '',
       weeklyMonday: '',
       weeklyTuesday: '',
@@ -201,16 +276,13 @@ export class EditReservationDialogComponent implements OnChanges {
       weeklyThursday: '',
       weeklyFriday: '',
       weeklySaturday: '',
-      monthlyByDay: '',
-      monthlyDay: '',
-      monthlyNoMonths: '',
+      monthly: '',
+      monthDay: '',
+      monthlyInterval: '',
       monthlyByWeekDay: '',
       monthlyWeekOfMonth: '',
       monthlyDayOfWeek: '',
-      monthlyEveryNoMonths: '',
-      range: '',
-      rangeEndByDate: '',
-      rangeEndAfterNo: ''
+      rangeEndByDate: ['', [Validators.required]]
     });
   }
 
@@ -229,75 +301,120 @@ export class EditReservationDialogComponent implements OnChanges {
     return this.eventForm.get('endTime');
   }
 
+  get until() {
+    return this.eventForm.get('rangeEndByDate');
+  }
 
   getEventFromFormValue(formValue: any): EventActionDetail {
     const startTime = formValue.eventDate + ' ' + formValue.startTime;
     const endTime = formValue.eventDate + ' ' + formValue.endTime;
-    let rrule;
-    switch (formValue.pattern) {
-
-      case RRule.MONTHLY:
-        rrule = {
-          freq: RRule.MONTHLY,
-          dtstart: new Date(formValue.eventDate),
-          interval: formValue.monthlyNoMonths,
-          until: new Date(formValue.rangeEndByDate)
-        };
-        break;
-
-      case RRule.WEEKLY:
-        const weekDays = new Array<Weekday>();
-        // tslint:disable-next-line:no-unused-expression
-        (formValue.weeklySunday) ? weekDays.push(this.SU) : '';
-        (formValue.weeklyMonday) ? weekDays.push(this.MO) : '';
-        (formValue.weeklyTuesday) ? weekDays.push(this.TU) : '';
-        (formValue.weeklyWednesday) ? weekDays.push(this.WE) : '';
-        (formValue.weeklyThursday) ? weekDays.push(this.TH) : '';
-        (formValue.weeklyFriday) ? weekDays.push(this.FR) : '';
-        (formValue.weeklySaturday) ? weekDays.push(this.SA) : '';
-
-        rrule = {
-          freq: RRule.WEEKLY,
-          dtstart: new Date(formValue.eventDate),
-          interval: formValue.weeklyWeeks,
-          byweekday: weekDays,
-          until: new Date(formValue.rangeEndByDate)
-        };
-
-        break;
-
-      case RRule.DAILY:
-
-        break;
-    }
-
-
-     const rule = new RRule(
-        Object.assign({}, rrule)
-     );
-   /*  const rule = new RRule({
-      freq: RRule.WEEKLY,
-      interval: 5,
-      byweekday: [RRule.MO, RRule.FR],
-      dtstart: new Date(Date.UTC(2012, 1, 1, 10, 30)),
-      until: new Date(Date.UTC(2012, 12, 31))
-    }); */
-
-    console.log(rule.toString());
 
     const event = {
       id: formValue.id,
       title: formValue.title,
-      start: moment(startTime).toDate(),
-      end: moment(endTime).toDate()
+      start: new Date(startTime),
+      end: new Date(endTime)
     };
+
+    let rule;
+
+    if (formValue.useRecurring) {
+      let rrule;
+      switch (formValue.pattern) {
+
+        case RRule.MONTHLY:
+          if (formValue.monthly === this.BYDAY) {
+            rrule = {
+              freq: RRule.MONTHLY,
+              dtstart: moment(formValue.eventDate).toDate(),
+              interval: formValue.monthlyInterval,
+              until: moment(formValue.rangeEndByDate).toDate()
+            };
+          } else {
+
+
+
+            rrule = {
+              freq: RRule.MONTHLY,
+              dtstart: moment(formValue.eventDate).toDate(),
+              byweekday: Number(formValue.monthlyDayOfWeek) - 1,
+              bysetpos: Number(formValue.monthlyWeekOfMonth),
+              interval: formValue.monthlyInteval,
+              until: moment(formValue.rangeEndByDate).toDate()
+            };
+          }
+
+          break;
+
+        case RRule.WEEKLY:
+          const weekDays = new Array<Weekday>();
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklySunday) ? weekDays.push(this.SU) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklyMonday) ? weekDays.push(this.MO) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklyTuesday) ? weekDays.push(this.TU) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklyWednesday) ? weekDays.push(this.WE) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklyThursday) ? weekDays.push(this.TH) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklyFriday) ? weekDays.push(this.FR) : '';
+          // tslint:disable-next-line:no-unused-expression
+          (formValue.weeklySaturday) ? weekDays.push(this.SA) : '';
+
+          rrule = {
+            freq: RRule.WEEKLY,
+            dtstart: moment(formValue.eventDate).toDate(),
+            interval: formValue.weeklyWeeks,
+            byweekday: weekDays,
+            until: moment(formValue.rangeEndByDate).toDate()
+          };
+
+          break;
+
+        case RRule.DAILY:
+          if (formValue.byDay === this.EVERYDAY) {
+            rrule = {
+              freq: RRule.DAILY,
+              dtstart: moment(formValue.eventDate).toDate(),
+              interval: formValue.dailyEveryDays,
+              until: moment(formValue.rangeEndByDate).toDate()
+            };
+          } else {
+            const allWeekDays = [
+              this.MO, this.TU, this.WE, this.TH, this.FR
+            ];
+            rrule = {
+              freq: RRule.WEEKLY,
+              dtstart: moment(formValue.eventDate).toDate(),
+              interval: 1,
+              weekDays: allWeekDays,
+              until: moment(formValue.rangeEndByDate).toDate()
+            };
+
+          }
+          break;
+      }
+
+
+      rule = new RRule(
+        Object.assign({}, rrule)
+      ).toString();
+    } else {
+      rule = '';
+    }
+
+
+
     const details = {
       action: this.action,
       event: event,
-      rrule: rule.toString()
+      rrule: rule
     };
     return details;
   }
+
 
   dateChangeHandler(event$: any) {
     this.getAvailableStartTimes(event$);
@@ -308,7 +425,8 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   setDaily(event$: any) {
-    this.eventForm.get('dailyEveryDays').setValue(1);
+    this.eventForm.get('byDay').setValue(this.EVERYDAY);
+    this.eventForm.get('dailyInterval').setValue(1);
   }
 
   setWeekly(event$: any) {
@@ -320,7 +438,7 @@ export class EditReservationDialogComponent implements OnChanges {
     this.eventForm.get('weeklyFriday').setValue(false);
     this.eventForm.get('weeklySaturday').setValue(false);
 
-    this.eventForm.get('weeklyWeeks').setValue(1);
+    this.eventForm.get('weeklyInterval').setValue(1);
     const weekDay = moment(event$).weekday();
     switch (weekDay) {
       case 0:
@@ -350,115 +468,64 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   setMonthly(event$: any) {
-    const eventDay = moment(event$);
-    const dayOfMonth = eventDay.get('date');
-    const weekOfMonth = eventDay.week() - moment().startOf('month').week();
-    const weekDay = moment(event$).weekday();
+    this.eventForm.get('monthly').setValue(this.BYDAY);
+    const eventDay = moment(this.eventDate.value);
+    const dayOfMonth = moment(this.eventDate.value).date();
+    const weekOfMonth = eventDay.diff(moment(this.eventDate.value).startOf('month'), 'week');
+    const weekDay = eventDay.weekday();
 
-    this.eventForm.get('monthlyDay').setValue(dayOfMonth);
-    this.eventForm.get('monthlyNoMonths').setValue(1);
+    this.eventForm.get('monthDay').setValue(dayOfMonth);
+    this.eventForm.get('monthlyInterval').setValue(1);
     this.eventForm.get('monthlyWeekOfMonth').setValue(weekOfMonth);
     this.eventForm.get('monthlyDayOfWeek').setValue(weekDay);
-    this.eventForm.get('monthlyEveryNoMonths').setValue(1);
+    this.eventForm.get('monthlyInterval').setValue(1);
   }
 
-  setRange(eventDate: any, occurances: number) {
-    const eventDay = moment(eventDate).toDate();
-
-    if (this.pattern === this.DAILY) {
-      this.eventForm.get('rangeEndAfterNo').setValue(occurances);
-      this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(occurances, 'days').format('YYYY-MM-DD'));
-    }
-    if (this.pattern === this.WEEKLY) {
-      if (moment(eventDay).add(occurances, 'weeks')
-        .isBefore(moment(eventDay).add(this.facilityMaxReservationDays, 'days'))) {
-        this.eventForm.get('rangeEndAfterNo').setValue(occurances);
-        this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(occurances, 'weeks').format('YYYY-MM-DD'));
-      } else {
-        const allowedEndDate = moment(eventDay).add(this.facilityMaxReservationDays, 'days');
-        const allowedOccurances = Math.round(moment.duration(allowedEndDate.diff(eventDay)).asWeeks());
-        this.eventForm.get('rangeEndAfterNo').setValue(allowedOccurances);
-        this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(allowedOccurances, 'weeks').format('YYYY-MM-DD'));
-      }
-    }
-    if (this.pattern === this.MONTHLY) {
-      if (moment(eventDay).add(occurances, 'months')
-        .isBefore(moment(eventDay).add(this.facilityMaxReservationDays, 'days'))) {
-        this.eventForm.get('rangeEndAfterNo').setValue(occurances);
-        this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(occurances, 'months').format('YYYY-MM-DD'));
-      } else {
-        const allowedEndDate = moment(eventDay).add(this.facilityMaxReservationDays, 'days');
-        const allowedOccurances = Math.round(moment.duration(allowedEndDate.diff(eventDay)).asMonths());
-        this.eventForm.get('rangeEndAfterNo').setValue(allowedOccurances);
-        this.eventForm.get('rangeEndByDate').setValue(moment(eventDay).add(allowedOccurances, 'months').format('YYYY-MM-DD'));
-      }
-    }
-  }
-
-  handleRangeChange($event: any) {
-    const maxDate = moment().add(this.facilityMaxReservationDays, 'days');
-    let calcEndDate;
-    let occurances;
-
-    if ($event.target.id === 'monthly' || $event.target.id === 'weekly' || $event.target.id === 'daily') {
-      occurances = this.eventForm.get('rangeEndAfterNo').value;
-      switch (this.pattern) {
-        case this.DAILY:
-          calcEndDate = moment(this.eventDate.value).add(occurances, 'days');
-          break;
-        case this.WEEKLY:
-          calcEndDate = moment(this.eventDate.value).add(occurances, 'weeks');
-          break;
-        case this.MONTHLY:
-          calcEndDate = moment(this.eventDate.value).add(occurances, 'months');
-
-      }
-    } else if ($event.target.id === 'rangeEndAfterNo') {
-      // calculate the projected date based on the pass occurnaces
-      switch (this.pattern) {
-        case this.DAILY:
-          calcEndDate = moment(this.eventDate.value).add($event.target.value, 'days');
-          break;
-        case this.WEEKLY:
-          calcEndDate = moment(this.eventDate.value).add($event.target.value, 'weeks');
-          break;
-        case this.MONTHLY:
-          calcEndDate = moment(this.eventDate.value).add($event.target.value, 'months');
-
-      }
-    } else if ($event.target.id === 'rangeEndByDate') {
-      calcEndDate = moment($event.target.value);
-    } else {
-      calcEndDate = moment($event.target.value);
-    }
-
-    let endDate;
-    if (maxDate.isBefore(calcEndDate)) {
-      endDate = maxDate;
-    } else {
-      endDate = calcEndDate;
-    }
-
-    // calculate occurances and set
+  setRange(eventDate: Date, occurances: number) {
+    let interval;
     switch (this.pattern) {
-      case this.DAILY:
-        occurances = moment.duration(endDate.diff(this.eventDate.value)).asDays();
+      case this.MONTHLY:
+        interval = 'months';
         break;
       case this.WEEKLY:
-        occurances = moment.duration(endDate.diff(this.eventDate.value)).asWeeks();
+        interval = 'weeks';
         break;
-      case this.MONTHLY:
-        occurances = moment.duration(endDate.diff(this.eventDate.value)).asMonths();
+      case this.DAILY:
+        interval = 'days';
     }
-    occurances = Math.round(occurances);
-    this.setRange(this.eventDate.value, occurances);
-
+    const calcEndDate = (moment(eventDate).add(occurances, interval)
+      .isAfter(moment(this.maxDate))) ?
+      this.maxDate : moment(eventDate).add(occurances, interval).toDate();
+    this.eventForm.get('rangeEndByDate').setValue(moment(calcEndDate).format('YYYY-MM-DD'));
   }
+
+  handleRecurringClick() {
+    this.showRecurring = !this.showRecurring;
+    if (!this.showRecurring) {
+      this.eventForm.get('useRecurring').setValue(false);
+    }
+  }
+
 
   handlePatternChange(event$: any, pattern: number) {
     this.pattern = pattern;
-    this.handleRangeChange(event$);
+    switch (this.pattern) {
+      case this.MONTHLY:
+        this.setMonthly(event$);
+        break;
+      case this.WEEKLY:
+        this.setWeekly(event$);
+        break;
+      case this.DAILY:
+        this.setDaily(event$);
+    }
+    this.setRange(this.eventDate.value, this.facilityDefaultOccurnaces);
   }
+
+  handleDaily(value: number) {
+    this.byDay = value;
+  }
+
   // set occurances to max date
 
   async getAvailableStartTimes(event$: any) {
@@ -469,6 +536,7 @@ export class EditReservationDialogComponent implements OnChanges {
   }
 
   async getAvailableEndTimes(event$: any) {
+    this.endTime.setValue('');
     const end = this.eventDate.value + ' ' + event$.target.value;
     this.availableEndTimes = await this.resService.getAvailableEndTimes(this.event,
       this.resource, this.facility, moment(end).toDate());
@@ -477,6 +545,8 @@ export class EditReservationDialogComponent implements OnChanges {
   getAvailableDays(event$: any) {
     return this.auth.getAvailableDates(event$.id);
   }
+
+
 }
 
 

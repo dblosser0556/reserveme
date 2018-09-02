@@ -19,7 +19,8 @@ import {
   addMinutes,
   getMinutes,
   format,
-  isThisQuarter
+  isThisQuarter,
+  differenceInMinutes
 } from 'date-fns';
 import { ReservationService, FacilityService, AuthService, ResourceService } from '../../../services';
 import { Reservation, Facility, Resource, resType, EventActionDetail } from '../../../models';
@@ -82,18 +83,7 @@ function endOfPeriod(period: CalendarPeriod, date: Date): Date {
 @Component({
   selector: 'app-resource-calendar',
   templateUrl: './resource-calendar.component.html',
-  styles: [`
-   .cal-disabled {
-    background-color: rgb(247, 125, 125) !important;
-    pointer-events: none;
-  }
-  .cal-disabled .cal-day-number {
-    opacity: 0.8;
-  }
-  `
-
-  ]
-
+  styleUrls: ['./resource-calendar.component.scss']
 })
 export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
@@ -168,7 +158,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
   }
 
   startUp() {
-
+    this.viewDate = new Date();
     this.maxDate = addDays(new Date(), this.auth.userRole.maxReservationPeriod);
     this.maxReservationsPerDay = this.auth.userRole.maxReservationsPerDay;
     this.maxReservationsPerPeriod = this.auth.userRole.maxReservationsPerPeriod;
@@ -237,7 +227,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     });
   }
 
-  handleEvent(action: string, event: CalendarEvent): void {
+  handleEvent(action: string, event: any): void {
     const userName = this.auth.userName;
     this.detailsData = { action: action, rrule: event.meta.rrule, event: event };
     this.modal.open(this.detailsData, this.facility, this.resource, userName);
@@ -277,8 +267,11 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
       day: endOfDay
     }[this.view];
 
+    console.log('start ', getStart(this.viewDate), ' end ', getEnd(this.viewDate));
+
     this.reservationService.getforResource(this.resource.id, getStart(this.viewDate), getEnd(this.viewDate))
       .subscribe(results => {
+        this.events = [];
         const reservations: Reservation[] = [];
         for (const reservation of results['reservations']) {
           reservations.push(reservation);
@@ -304,9 +297,10 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
             let event: CalendarEvent;
             if (reservation.rrule !== '') {
               const rrule = RRuleSet.fromString(reservation.rrule);
-              rrule.all().forEach(date => {
-                const startTime = getMinutes(reservation.start);
-                const endTime = getMinutes(reservation.end);
+              const startTime = differenceInMinutes(reservation.start, startOfDay(reservation.start));
+              const endTime = differenceInMinutes(reservation.end, startOfDay(reservation.end));
+              rrule.between(getStart(this.viewDate), getEnd(this.viewDate)).forEach(date => {
+
                 event = {
                   id: reservation.id,
                   title: reservation.title,
@@ -359,14 +353,9 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
 
   addEvent(event$: any) {
 
-    let _start = startOfDay(this.viewDate);
-    _start = addMinutes(_start, this.facility.startHour * 60);
-    const _end = addMinutes(_start, this.resource.maxReservationTime);
-    const _title = this.auth.userName + ' ' + format(_start, 'hh:mm A') + ' - ' + format(_end, 'hh:mm A');
+    const _start = startOfDay(this.viewDate);
     const _event = {
       start: _start,
-      end: _end,
-      title: _title,
       id: 0,
       meta: {
         rrule: ''
@@ -380,8 +369,7 @@ export class ResourceCalendarComponent implements OnInit, AfterViewInit {
     const event = eventDetail.event;
     this.reservationService.delete(Number(event.id)).subscribe(
       res => {
-        const results: ApiMessage = res;
-        this.toast.success(results.message, 'Success');
+        this.toast.success('Reservation Deleted', 'Success');
         // remove the reservation for the current user list
         const index = this.auth.reservations.findIndex(_res => _res.id === Number(event.id));
         if (index > -1) {

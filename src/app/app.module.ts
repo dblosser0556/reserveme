@@ -1,8 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
-import { AppComponent } from './components/app/app.component';
 import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
+import { QuillModule } from 'ngx-quill';
+import { AppComponent } from './components/app/app.component';
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MessagesComponent } from './components/messages/messages.component';
@@ -17,6 +19,8 @@ import { RegistrationFormComponent } from './components/registration-form/regist
 import { ConfigurationModule } from './components/configuration/configuration.module';
 import { ToastrModule } from 'ngx-toastr';
 import { UserDetailModule } from './components/user-detail/user-detail.module';
+import { MailerModule } from './components/mailer/mailer.module';
+
 
 export function tokenGetter() {
   return localStorage.getItem('access_token');
@@ -30,7 +34,8 @@ export function tokenGetter() {
     LoginFormComponent,
     HeaderComponent,
     PageNotFoundComponent,
-    RegistrationFormComponent
+    RegistrationFormComponent,
+
   ],
   imports: [
     HttpClientModule,
@@ -48,6 +53,8 @@ export function tokenGetter() {
       positionClass: 'toast-top-right',
       preventDuplicates: true,
     }),
+    QuillModule,
+    MailerModule,
     routing,
     JwtModule.forRoot({
       config: {

@@ -20,8 +20,8 @@ export class ReservationService extends AbstractRestService<Reservation> {
   }
 
   getforResource(resourceId: number, startDate: Date, endDate: Date): Observable<Reservation[]> {
-    const _startDate = moment(startDate).format('YYYY-MM-DD');
-    const _endDate = moment(endDate).format('YYYY-MM-DD');
+    const _startDate = moment(startDate).format();
+    const _endDate = moment(endDate).format();
     const _resourceId = resourceId.toString();
     const params = new HttpParams()
       .set('resourceId', _resourceId)
@@ -36,8 +36,8 @@ export class ReservationService extends AbstractRestService<Reservation> {
   }
 
   getAvailableStartTimes(event: CalendarEvent, resource: Resource, facility: Facility, start: Date): Observable<string[]> {
-    const _startDate = moment(start).startOf('day').format('YYYY-MM-DD');
-    const _endDate = moment(start).endOf('day').format('YYYY-MM-DD');
+    const _startDate = moment(start).startOf('day').format();
+    const _endDate = moment(start).endOf('day').format();
     const _resourceId = resource.id.toString();
     const params = new HttpParams()
       .set('resourceId', _resourceId)
@@ -61,8 +61,8 @@ export class ReservationService extends AbstractRestService<Reservation> {
   }
 
   getAvailableEndTimes(event: CalendarEvent, resource: Resource, facility: Facility, start: Date): Observable<string[]> {
-    const _startDate = moment(start).startOf('day').format('YYYY-MM-DD');
-    const _endDate = moment(start).endOf('day').format('YYYY-MM-DD');
+    const _startDate = moment(start).startOf('day').format();
+    const _endDate = moment(start).endOf('day').format();
     const _resourceId = resource.id.toString();
     const params = new HttpParams()
       .set('resourceId', _resourceId)

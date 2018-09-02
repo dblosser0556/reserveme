@@ -5,4 +5,4 @@ export * from './auth.service';
 export * from './reservation.service';
 export * from './resource.service';
 export * from './facility.service';
-
+export * from './mailer.service';

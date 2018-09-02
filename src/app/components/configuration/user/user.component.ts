@@ -21,7 +21,9 @@ export class UserComponent implements OnInit {
   users: User[] = [];
   errors: string;
   userRoles: UserRole[];
-
+  userList: string = null;
+  popupEmail = false;
+  selected: User[] = [];
 
   constructor(private userService: UserService, private auth: AuthService,
     private userRoleService: UserRoleService, private toast: ToastrService,
@@ -80,7 +82,14 @@ export class UserComponent implements OnInit {
     this.userService.currentUser = user;
     this.router.navigate(['/configuration/userdetails']);
   }
-
+  email() {
+    
+    this.selected.forEach(user => {
+        this.userList += user.first + ' ' + user.last + '<' + user.email + '>;';
+    });
+    console.log(this.userList);
+    this.popupEmail = true;
+  }
   saveUser(user: User) {
 
     if (user.id === 0) {

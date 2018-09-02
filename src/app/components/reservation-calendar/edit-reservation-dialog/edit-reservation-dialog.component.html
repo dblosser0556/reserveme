@@ -12,15 +12,15 @@
             <input type="text" formControlName="title" size="45" readonly>
           </div>
           <div class="form-group">
-            <label class="required">Date</label>
+            <label>Date</label>
             <input type="text" id="eventDate" formControlName="eventDate" readonly>
           </div>
           <div class="form-group">
-            <label class="required">Start Time</label>
+            <label>Start Time</label>
             <input type="text" id="startTime" formControlName="startTime" readonly>
           </div>
           <div class="form-group">
-            <label class="required">End Time</label>
+            <label>End Time</label>
             <input type="text" id="endTime" formControlName="endTime" readonly>
           </div>
         </ng-container>
@@ -38,54 +38,76 @@
             <input type="text" formControlName="title" size="45" readonly>
           </div>
 
-          <ng-container *ngIf="canRecur">
+          <ng-container *ngIf="!useEventDateList">
             <div class="form-group">
               <label class="required">Date</label>
-              <input type="date" formControlName="eventDate" placeholder="select date" required (change)="dateChangeHandler($event)">
+              <label for="date" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm"
+                [class.invalid]="eventDate.invalid
+                  && (eventDate.dirty || eventDate.touched)">
+                <input type="date" formControlName="eventDate" placeholder="select date" required (change)="dateChangeHandler($event)">
+                <span class="tooltip-content">Date is required!</span>
+              </label>
             </div>
           </ng-container>
-          <ng-container *ngIf="!canRecur">
-          <div class="form-group">
-            <label class="required">Date</label>
-            <div class="select">
-              <select id="startTime" formControlName="eventDate" placeholder="select date" required (change)="getAvailableStartTimes($event) ">
-                <option *ngFor="let date of availableDays">{{date}}</option>
-              </select>
+          <ng-container *ngIf="useEventDateList">
+            <div class="form-group">
+              <label class="required">Date</label>
+              <label for="dateList" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm"
+                [class.invalid]="date.invalid
+                && (date.dirty || date.touched)">
+                <div class="select">
+                  <select id="dateList" formControlName="eventDate" placeholder="select date" required (change)="getAvailableStartTimes($event) ">
+                    <option *ngFor="let date of availableDays">{{date}}</option>
+                  </select>
+                </div>
+                <span class="tooltip-content">Date is required!</span>
+              </label>
             </div>
-          </div>
-        </ng-container>
+          </ng-container>
           <div class="form-group">
             <label class="required">Start Time</label>
+            <label for="startTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm"
+              [class.invalid]="startTime.invalid
+                && (startTime.dirty || startTime.touched)">
+              <div class="select">
 
-            <div class="select">
-              <select id="startTime" formControlName="startTime" placeholder="select start time" required (change)="getAvailableEndTimes($event) ">
-                <option *ngFor="let time of availableStartTimes | async" [value]="time">{{time}}</option>
-              </select>
-            </div>
+                <select id="startTime" formControlName="startTime" placeholder="select start time" required (change)="getAvailableEndTimes($event) ">
+                  <option *ngFor="let time of availableStartTimes | async" [value]="time">{{time}}</option>
+                </select>
+              </div>
+              <span class="tooltip-content">Date is required!</span>
+            </label>
           </div>
           <div class="form-group">
             <label class="required">End Time</label>
-
-            <div class="select">
-              <select id="endTime" formControlName="endTime" placeholder="select start time" required (change)="updateTitle($event)">
-                <option *ngFor="let time of availableEndTimes | async" [value]="time">{{time}}</option>
-              </select>
-            </div>
+            <label for="endTime" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm"
+              [class.invalid]="endTime.invalid
+              && (endTime.dirty || endTime.touched)">
+              <div class="select">
+                <select id="endTime" formControlName="endTime" placeholder="select start time" required (change)="updateTitle($event)">
+                  <option *ngFor="let time of availableEndTimes | async" [value]="time">{{time}}</option>
+                </select>
+              </div>
+            </label>
           </div>
           <ng-container *ngIf="canRecur">
-              <button type="button" class="btn btn-link" (click)="showRecurring=!showRecurring">Recurring
-                  <clr-icon *ngIf="!showRecurring"shape="caret" dir="right"></clr-icon>
-                  <clr-icon *ngIf="showRecurring" shape="caret" dir="down"></clr-icon>
-              </button>
+            <button type="button" class="btn btn-link" (click)="handleRecurringClick()">Recurring
+              <clr-icon *ngIf="!showRecurring" shape="caret" dir="right"></clr-icon>
+              <clr-icon *ngIf="showRecurring" shape="caret" dir="down"></clr-icon>
+            </button>
             <div *ngIf="showRecurring">
               <section>
+                <div class="checkbox">
+                  <input type="checkbox" formControlName="useRecurring" id="useRecurring">
+                  <label class="pattern-detail" for="useRecurring">Use Recurring</label>
+                </div>
                 <label>Recurring Pattern</label>
                 <table width="100%">
                   <tr>
                     <td width="25%">
                       <div class="radio">
-                        <input type="radio" id="daily" [value]="DAILY" formControlName="pattern" (change)="handlePatternChange($event, DAILY)">
-                        <label for="daily">Daily</label>
+                        <input type="radio" id="days" [value]="DAILY" formControlName="pattern" (change)="handlePatternChange($event, DAILY)">
+                        <label for="days">Daily</label>
                       </div>
                       <div class="radio">
                         <input type="radio" id="weekly" [value]="WEEKLY" formControlName="pattern" (change)="handlePatternChange($event,WEEKLY)">
@@ -99,16 +121,19 @@
                     <td width="75%">
                       <ng-container *ngIf="pattern==DAILY">
                         <div class="row">
+                            
                           <div class="radio">
-                            <input type="radio" id="dailyEvery" [value]="dailyEvery" formControlName="daily" [checked]="daily=='dailyEvery'" (change)="daily='dailyEvery'">
-                            <label class="pattern-detail" for="dayEvery">Every</label>
+                            <input type="radio" id="dailyEvery" [value]="EVERYDAY"
+                              formControlName="byDay"  >
+                            <label class="pattern-detail" for="dailyEvery">Every</label>
                           </div>
-                          <input class="small-input" formControlName="dailyEveryDays" type="number">
+                          <input class="small-input" formControlName="dailyInterval" type="number">
                           <span>days</span>
                         </div>
                         <div class="row">
                           <div class="radio">
-                            <input type="radio" id="dailyWeekDays"  [value]="dailyWeekDay" formControlName="daily" [checked]="daily=='dailyWeekDays'" (change)="daily='dailyWeekDay'">
+                            <input type="radio" id="dailyWeekDay" [value]="WEEKDAYS" 
+                            formControlName="byDay" >
                             <label class="pattern-detail" for="dailyWeekDays">Every weekday</label>
                           </div>
                         </div>
@@ -116,16 +141,16 @@
                       <ng-container *ngIf="pattern==WEEKLY">
                         <div>
                           Recur every
-                          <input class="small-input" formControlName="weeklyWeeks" type="number"> week(s) on:
+                          <input class="small-input" formControlName="weeklyInterval" type="number"> week(s) on:
                         </div>
                         <div>
                           <div class="checkbox-inline">
-                            <input type="checkbox"  formControlName="weeklySunday" id="sunday">
+                            <input type="checkbox" formControlName="weeklySunday" id="sunday">
                             <label class="pattern-detail" for="sunday">Sunday</label>
                           </div>
                           <div class="checkbox-inline">
                             <input type="checkbox" id="monday" formControlName="weeklyMonday">
-                            <label class="pattern-detail"  for="monday">Monday</label>
+                            <label class="pattern-detail" for="monday">Monday</label>
                           </div>
                           <div class="checkbox-inline">
                             <input type="checkbox" id="tuesday" formControlName="weeklyTuesday">
@@ -133,7 +158,7 @@
                           </div>
                           <div class="checkbox-inline">
                             <input type="checkbox" id="wednesday" formControlName="weeklyWednesday">
-                            <label class="pattern-detail" for="wednesday" >Wednesday</label>
+                            <label class="pattern-detail" for="wednesday">Wednesday</label>
                           </div>
                           <div class="checkbox-inline">
                             <input type="checkbox" id="thursday" formControlName="weeklyThursday">
@@ -153,17 +178,19 @@
                         <div>
                           <div class="row">
                             <div class="radio">
-                              <input type="radio" id="monthByDay" formControlName="monthlyByDay" [checked]="monthly=='monthByDay'" (change)="monthly='monthByDay'">
+                              <input type="radio" id="monthByDay" formControlName="monthly" [value]="BYDAY" 
+                                (change)="monthly=BYDAY">
                               <label class="pattern-detail" for="monthByDay">Day</label>
                             </div>
-                            <input class="small-input" type="number" formControlName="monthlyDay">
+                            <input class="small-input" type="number" formControlName="monthDay">
                             <span>of every</span>
-                            <input class="small-input" type="number" formControlName="monthlyNoMonths">
+                            <input class="small-input" type="number" formControlName="monthlyInterval">
                             <span>month(s)</span>
                           </div>
                           <div class="row">
                             <div class="radio">
-                              <input type="radio" id="monthByWeekday" [checked]="monthly=='monthByWeekDay'" (change)="monthly='monthByWeekDay'">
+                              <input type="radio" id="monthByWeekday" formControlName="monthly" [value]="WEEKDAYS" 
+                                (change)="monthly=WEEKDAYS">
                               <label class="pattern-detail" for="monthByWeekday">The</label>
                             </div>
                             <div class="select">
@@ -177,48 +204,40 @@
                             </div>
                             <div class="select">
                               <select id="monthlyDayOfWeek" formControlName="monthlyDayOfWeek">
-                                <option [value]="0">Sunday</option>
-                                <option [value]="1">Monday</option>
-                                <option [value]="2">Tuesday</option>
-                                <option [value]="3">Wednesday</option>
-                                <option [value]="4">Thursday</option>
-                                <option [value]="5">Friday</option>
-                                <option [value]="6">Saturday</option>
+                                <option [value]="1">Sunday</option>
+                                <option [value]="2">Monday</option>
+                                <option [value]="3">Tuesday</option>
+                                <option [value]="4">Wednesday</option>
+                                <option [value]="5">Thursday</option>
+                                <option [value]="6">Friday</option>
+                                <option [value]="7">Saturday</option>
                               </select>
                             </div>
                             <span>of every</span>
-                            <input class="small-input" type="number" formControlName="monthlyEveryNoMonths">
+                            <input class="small-input" type="number" formControlName="monthlyInterval">
                             <span>month(s)</span>
                           </div>
                         </div>
                       </ng-container>
                     </td>
                   </tr>
-
-                </table>
-                <label>Range of recurrance</label>
-                <table>
                   <tr>
-                    <td>
-                      <div class="radio">
-                        <input type="radio" id="endBy" name="range" formControlName="range" [value]="'endBy'" [checked]="range=='endBy'" (change)="range='endBy'">
-                        <label class="pattern-detail" for="endBy">End by</label>
-                        <input type="date" id="rangeEndByDate" formControlName="rangeEndByDate" (change)="handleRangeChange($event)" >
-                      </div>
-                      <div class="radio">
-                        <input type="radio" id="endAfter" name="range" formControlName="range" [value]="'endAfter'" [checked]="range=='endAfter'" (change)="range='endAfter'">
-                        <label class="pattern-detail" for="endAfter">End after</label>
-                        <input class="small-input" id="rangeEndAfterNo" type="number" formControlName="rangeEndAfterNo" (change)="handleRangeChange($event)">
-                        <span [ngSwitch]="pattern">
-                          <ng-template [ngSwitchCase]="DAILY">days</ng-template>
-                          <ng-template [ngSwitchCase]="WEEKLY">weeks</ng-template>
-                          <ng-template [ngSwitchCase]="MONTHLY">months</ng-template>
-                        </span>
-                      </div>
-
+                    <td colspan="2">
+                        <div class="form-group">
+                            <label class="required">End by</label>
+                            <label for="dateList" aria-haspopup="true" role="tooltip" class="tooltip tooltip-validation tooltip-sm"
+                              [class.invalid]="until.invalid
+                              && (until.dirty || until.touched)">
+                              <input type="date" id="rangeEndByDate" formControlName="rangeEndByDate"  required>
+                              <span class="tooltip-content">Valid End Date is required!</span>
+                            </label>
+                          </div>
+                     
+                      
                     </td>
                   </tr>
                 </table>
+
               </section>
             </div>
           </ng-container>

@@ -5,7 +5,7 @@ import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { configurationRouting } from './configuration.routing';
-
+import { MailerModule } from '../mailer/mailer.module';
 
 import {
   RootComponent,
@@ -26,7 +26,8 @@ import { ResourceComponent } from './resource/resource.component';
     ClrFormsNextModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
-    configurationRouting
+    configurationRouting,
+    MailerModule,
   ],
   declarations: [
     RootComponent,

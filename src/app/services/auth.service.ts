@@ -75,7 +75,10 @@ export class AuthService {
               maxReservationsPerDay: 0,
               maxReservationPeriod: 0,
               maxReservationsPerPeriod: 0,
+              class: 0,
               isAdmin: false,
+              isSuperAdmin: false,
+              canUseRecurring: false,
               FacilityId: this._facility.id
             };
             this._loggedIn = true;
@@ -132,7 +135,14 @@ export class AuthService {
     return this._user.first + ' ' + this._user.last;
   }
 
-  public canReserve(eventDate: Date): boolean {
+  public canReserve(eventDate: Date, resourceClass?: number): boolean {
+    // check resource class if passed in.  The user role class
+    // must be higher the resource class in order to schedule.
+    if (resourceClass !== undefined) {
+      if (resourceClass > this._userRole.class) {
+        return false;
+      }
+    }
     if (this.reservations.length >= this.userRole.maxReservationsPerPeriod) {
       return false;
     }

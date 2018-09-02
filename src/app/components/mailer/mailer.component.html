@@ -1,0 +1,39 @@
+<clr-modal [(clrModalOpen)]="showEmailer">
+  <h3 class="modal-title">I have a nice title</h3>
+  <div class="modal-body">
+
+    <form clrForm clrLayout="horizontal" [formGroup]="mailerForm" novalidate>
+      <clr-input-container>
+        <label>From</label>
+        <input clrInput type="email" formControlName="from" email required />
+        <clr-control-error *clrIfError="'required'">A from address is required.</clr-control-error>
+        <clr-control-error *clrIfError="'invalidEmail'">This must be in the form of a vaild email address.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>To</label>
+        <input clrInput type="email" formControlName="to" size="50" email required />
+        <clr-control-error *clrIfError="'required'">A to email address is required</clr-control-error>
+        <clr-control-error *clrIfError="'invalidEmail'">This must be in the form of a vaild email address.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>cc</label>
+        <input clrInput type="email" email formControlName="cc" />
+        <clr-control-error *clrIfError="'invalidEmail'">This must be in the form of a vaild email address.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>Subject</label>
+        <input clrInput type="text" formControlName="subject" required />
+        <clr-control-error *clrIfError="'required'">A subject is required</clr-control-error>
+      </clr-input-container>
+      <div class="mail-body">
+          <quill-editor [style]="{height: '250px'}" formControlName="body" [required]="true" (onContentChanged)="contentChanged($event)" >
+          </quill-editor>
+        </div>
+    </form>
+    
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="showEmailer = false">Cancel</button>
+    <button type="submit" class="btn btn-primary" (click)="submit()" [disabled]="mailerForm.invalid">Send</button>
+  </div>
+</clr-modal>
