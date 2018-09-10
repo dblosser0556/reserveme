@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { configurationRouting } from './configuration.routing';
 import { MailerModule } from '../mailer/mailer.module';
+import { QuillModule } from 'ngx-quill';
 
 import {
   RootComponent,
@@ -16,6 +17,8 @@ import {
 
 import { UserComponent } from './user/user.component';
 import { ResourceComponent } from './resource/resource.component';
+import { RoleDetailComponent } from './role/role-detail/role-detail.component';
+import { FacilityPageEditorComponent } from './facility-page-editor/facility-page-editor.component';
 
 @NgModule({
   imports: [
@@ -28,6 +31,7 @@ import { ResourceComponent } from './resource/resource.component';
     BrowserAnimationsModule,
     configurationRouting,
     MailerModule,
+    QuillModule
   ],
   declarations: [
     RootComponent,
@@ -35,7 +39,9 @@ import { ResourceComponent } from './resource/resource.component';
     RoleComponent,
     FacilityInfoComponent,
     UserComponent,
-    ResourceComponent
+    ResourceComponent,
+    RoleDetailComponent,
+    FacilityPageEditorComponent
   ],
 
   exports: [RootComponent]

@@ -1,3 +1,63 @@
-<p>
-  roles works!
-</p>
+<div class="container">
+  <div class="card">
+    <div class="card-block">
+      <div *ngIf="isLoading">Loading User Role List ...</div>
+      <div *ngIf="!isLoading">
+        <clr-datagrid [(clrDgSingleSelected)]="selected">
+          <clr-dg-column>Name</clr-dg-column>
+          <clr-dg-column>Max Reservation Period</clr-dg-column>
+          <clr-dg-column>Max Reservations Per Day</clr-dg-column>
+          <clr-dg-column>Max Reservations Per Period</clr-dg-column>
+          <clr-dg-column>Admin</clr-dg-column>
+          <clr-dg-column>User Recurring</clr-dg-column>
+          <clr-dg-column>Class</clr-dg-column>
+
+          <clr-dg-row *ngFor="let role of userRoles" [clrDgItem]="role">
+            <clr-dg-cell>{{role.name}}</clr-dg-cell>
+            <clr-dg-cell>{{role.maxReservationPeriod}}</clr-dg-cell>
+            <clr-dg-cell>{{role.maxReservationsPerDay}}</clr-dg-cell>
+            <clr-dg-cell>{{role.maxReservationsPerPeriod}}</clr-dg-cell>
+            <clr-dg-cell>{{role.isAdmin}}</clr-dg-cell>
+            <clr-dg-cell>{{role.canUseRecurring}}</clr-dg-cell>
+            <clr-dg-cell>{{role.class}}</clr-dg-cell>
+
+          </clr-dg-row>
+
+          <clr-dg-footer>
+            <clr-dg-pagination #pagination [clrDgPageSize]="10" [clrDgTotalItems]="userRoles.length">
+              {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} of {{pagination.totalItems}} roles
+            </clr-dg-pagination>
+
+          </clr-dg-footer>
+        </clr-datagrid>
+      </div>
+      <div class="card-block">
+        <button class="btn btn-primary" (click)="add()">
+          <clr-icon shape="plus"></clr-icon>Add New
+        </button>
+
+        <button class="btn btn-outline" (click)="edit()">
+          <clr-icon shape="pencil" class="is-solid"></clr-icon>Edit
+        </button>
+
+
+        <button class="btn btn-outline" (click)="confirmDelete()">
+          <clr-icon shape="trash" class="is-solid"></clr-icon>Delete
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+<app-role-detail (ok)="saveUserRole($event)" (cancel)="cancel($event)" [currentRole]="currentRole" [showDetail]="showUserRoleDetails"></app-role-detail>
+<clr-modal [(clrModalOpen)]="showDeleteConf">
+  <h3 class="modal-title">Confirm Deletion</h3>
+  <div class="modal-body">
+    <p>Are you sure you want to delete?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-warning" (click)="delete()">Delete</button>
+    <button type="button" class="btn btn-outline" (click)="showDeleteConf = false">Cancel</button>
+
+  </div>
+</clr-modal>

@@ -1,3 +1,92 @@
-<p>
-  facility-info works!
-</p>
+<div class="container">
+  <div class="content-area">
+
+
+    <div *ngIf="isLoading">Loading User Role List ...</div>
+    <div *ngIf="!isLoading">
+      <form clrForm [formGroup]="facilityForm" clrLayout="horizontal" novalidate>
+        <clr-input-container>
+          <label>Name</label>
+          <input clrInput type="text" formControlName="name" size="50" required />
+          <clr-control-error>A facility name is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Contact</label>
+          <input clrInput type="text" formControlName="contact" size="50" required />
+          <clr-control-error>A contact name is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Second Contact</label>
+          <input clrInput type="text" formControlName="secondContact" size="50" />
+        </clr-input-container>
+        <clr-input-container>
+          <label>Primary Phone</label>
+          <input clrInput type="tel" formControlName="phone" required pattern="^\s*(?:\+?\d{1,3})?[- (]*\d{3}(?:[- )]*\d{3})?[- ]*\d{4}(?: *[x/#]\d+)?\s*$" />
+          <clr-control-error *clrIfError="required">A primary phone number is required.</clr-control-error>
+          <clr-control-error *clrIfError="pattern">A proper phone number is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Second Phone</label>
+          <input clrInput type="tel" formControlName="secondPhone" pattern="^\s*(?:\+?\d{1,3})?[- (]*\d{3}(?:[- )]*\d{3})?[- ]*\d{4}(?: *[x/#]\d+)?\s*$" />
+          <clr-control-error *clrIfError="pattern">A proper phone number is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Address Line 1</label>
+          <input clrInput type="text" formControlName="address" size="50" required />
+          <clr-control-error *clrIfError="required">An address is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Address Line 2</label>
+          <input clrInput type="text" formControlName="address2" size="50" />
+        </clr-input-container>
+
+        <clr-input-container>
+          <label>City</label>
+          <input clrInput type="text" formControlName="city" size="10" required />
+          <clr-control-error *clrIfError="required">An city is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>State</label>
+          <input clrInput type="text" formControlName="stateCode" size="2" required />
+          <clr-control-error *clrIfError="required">A state code is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>ZipCode</label>
+          <input clrInput type="text" formControlName="zipCode" size="5" pattern="^(\d{5}(?:\-\d{4})?)$" />
+          <clr-control-error>A zip code is required.</clr-control-error>
+        </clr-input-container>
+
+        <clr-input-container>
+          <label>email</label>
+          <input clrInput type="text" formControlName="email" required email />
+          <clr-control-error *clrIfError="required">A proper email address is required.</clr-control-error>
+          <clr-control-error *clrIfError="email">A proper email address is required.</clr-control-error>
+        </clr-input-container>
+        <clr-input-container>
+          <label>Start Hour</label>
+          <input clrInput type="number" formControlName="startHour" size="5" />
+        </clr-input-container>
+        <clr-input-container>
+          <label>End Hour</label>
+          <input clrInput type="number" formControlName="endHour" size="5" />
+        </clr-input-container>
+        <clr-input-container>
+          <label>Max Reservation Days</label>
+          <input clrInput type="number" formControlName="maxReservationDays" size="5" required />
+          <clr-control-error>Maximum Reservation Days is required.</clr-control-error>
+        </clr-input-container>
+      </form>
+
+
+      <button class="btn btn-primary" (click)="save()" [disabled]="!facilityForm.dirty || !facilityForm.valid" >
+        <clr-icon shape="floppy"></clr-icon>Save
+      </button>
+      <button class="btn btn-outline" (click)="reset()" [disabled]="!facilityForm.dirty">
+        <clr-icon shape="refresh"></clr-icon>Reset
+      </button>
+
+
+    </div>
+  </div>
+
+</div>

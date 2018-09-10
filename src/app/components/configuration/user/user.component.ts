@@ -24,6 +24,7 @@ export class UserComponent implements OnInit {
   userList: string = null;
   popupEmail = false;
   selected: User[] = [];
+  showDeleteConf = false;
 
   constructor(private userService: UserService, private auth: AuthService,
     private userRoleService: UserRoleService, private toast: ToastrService,
@@ -78,14 +79,41 @@ export class UserComponent implements OnInit {
 
   }
 
-  edit(user: User) {
-    this.userService.currentUser = user;
+  edit() {
+    this.userService.currentUser = this.selected[0];
     this.router.navigate(['/configuration/userdetails']);
   }
+
+  confirmDelete() {
+    this.showDeleteConf = true; 
+  }
+  delete() {
+    this.userService.delete(this.selected[0].id).subscribe(
+      res => {
+        this.showDeleteConf = false;
+        const results: ApiMessage = res;
+        if (results.success === true) {
+          this.toast.success(results.message, 'Success');
+          this.isRequesting = true;
+          this.getUsers();
+        } else {
+          this.toast.error(results.message, 'Something Went Wrong');
+          console.log('Error', results);
+        }
+      }, error => {
+        this.toast.error('Oops something went wrong', 'Error');
+        console.log('Error ', error);
+      }
+    );
+  }
   email() {
-    
+    this.popupEmail = false;
     this.selected.forEach(user => {
-        this.userList += user.first + ' ' + user.last + '<' + user.email + '>;';
+        if (this.userList === null) {
+          this.userList = user.email;
+        } else {
+          this.userList += ',' + user.email;
+        }
     });
     console.log(this.userList);
     this.popupEmail = true;
@@ -121,6 +149,8 @@ export class UserComponent implements OnInit {
 
 
   }
-
+  onClose() {
+    this.popupEmail = false;
+  }
 
 }

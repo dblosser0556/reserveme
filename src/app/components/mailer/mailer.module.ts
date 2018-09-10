@@ -5,6 +5,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ClarityModule, ClrFormsNextModule } from '@clr/angular';
 import { MailerComponent } from './mailer.component';
 import { QuillModule } from 'ngx-quill';
+import { MultiEmailValidator} from '../../directives/multi-email-validator.directive';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { QuillModule } from 'ngx-quill';
     ClrFormsNextModule
   ],
   declarations: [
-    MailerComponent
+    MailerComponent,
+    MultiEmailValidator
   ],
   exports: [
     MailerComponent

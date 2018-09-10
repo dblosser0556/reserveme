@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MailerComponent } from './mailer.component';
+import { FacilityPageEditorComponent } from './facility-page-editor.component';
 
-describe('MailerComponent', () => {
-  let component: MailerComponent;
-  let fixture: ComponentFixture<MailerComponent>;
+describe('FacilityPageEditorComponent', () => {
+  let component: FacilityPageEditorComponent;
+  let fixture: ComponentFixture<FacilityPageEditorComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MailerComponent ]
+      declarations: [ FacilityPageEditorComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(MailerComponent);
+    fixture = TestBed.createComponent(FacilityPageEditorComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -7,7 +7,8 @@ import {
     RoleComponent,
     FacilityInfoComponent,
     ResourceComponent,
-    UserComponent
+    UserComponent,
+    FacilityPageEditorComponent
 
 } from '.';
 import { UserDetailComponent } from '../user-detail/user-detail.component';
@@ -55,6 +56,11 @@ export const configurationRouting: ModuleWithProviders = RouterModule.forChild([
                     {
                         path: 'resource', component: ResourceComponent,
                         data: { 'title': 'Update Facilty Resource Information', 'breadcrumb': 'Resource' }
+                    },
+
+                    {
+                        path: 'pages', component: FacilityPageEditorComponent,
+                        data: { 'title': 'Create Page', 'breadcrumb': 'Page' }
                     },
 
                 ]

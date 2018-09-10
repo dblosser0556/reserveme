@@ -1,0 +1,56 @@
+<clr-modal [(clrModalOpen)]="showDetail" [clrModalSize]="'lg'" [clrModalClosable]="false">
+  <h3 class="modal-title">Role Detail</h3>
+  <div class="modal-body">
+
+    <form clrForm clrLayout="horizontal" [formGroup]="roleForm" novalidate>
+      <clr-input-container>
+        <label>Name</label>
+        <input clrInput type="text" formControlName="name" size="50" required />
+        <clr-control-error>A role name is required.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>Maximum Reservation Period (Days)</label>
+        <input clrInput type="number" formControlName="maxReservationPeriod" size="5" required />
+        <clr-control-helper>The earliest someone can reserve.</clr-control-helper>
+        <clr-control-error *clrIfError="'required'">A number is required.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>Maximum Reservations Per Day</label>
+        <input clrInput type="number" formControlName="maxReservationsPerDay" size="5" required />
+        <clr-control-helper>The number of reservations in a day.</clr-control-helper>
+        <clr-control-error *clrIfError="'required'">A number is required.</clr-control-error>
+      </clr-input-container>
+      <clr-input-container>
+        <label>Maximum Reservations Per Period</label>
+        <input clrInput type="number" formControlName="maxReservationsPerPeriod" size="5" required />
+        <clr-control-helper>The maximum number of reservations within the max reservation periodl</clr-control-helper>
+        <clr-control-error *clrIfError="'required'">A number is required.</clr-control-error>
+      </clr-input-container>
+
+      <clr-input-container>
+        <label>Role Class:</label>
+        <input clrInput type="number" formControlName="class" size="5" required />
+        <clr-control-helper>Can schedule resources of class less than this class</clr-control-helper>
+        <clr-control-error *clrIfError="'required'">A number is required.</clr-control-error>
+      </clr-input-container>
+
+      <div class="toggle-switch">
+        <input type="checkBox" id="isAdmin" formControlName="isAdmin" />
+        <label for="isAdmin">Role can do configuration</label>
+      </div>
+
+      <div class="toggle-switch">
+        <input type="checkBox" id="canUseRecurring" formControlName="canUseRecurring" />
+        <label for="canUseRecurring">Role can create recurring events</label>
+      </div>
+
+
+
+    </form>
+
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="close()">Cancel</button>
+    <button type="submit" class="btn btn-primary" (click)="submit()" [disabled]="roleForm.invalid">Save</button>
+  </div>
+</clr-modal>

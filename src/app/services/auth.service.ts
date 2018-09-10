@@ -63,7 +63,7 @@ export class AuthService {
   }
 
   register(user: RegisterUser): Observable<boolean> {
-    return this.http.post<ResultMessage>('/v1/users', user)
+    return this.http.post<ResultMessage>('/v1/users/register', user)
       .pipe(
         map((result: ResultMessage) => {
           if (result.success) {
@@ -109,6 +109,10 @@ export class AuthService {
 
   public get userFacility(): Facility {
     return this._facility;
+  }
+
+  public set userFacility(facility: Facility) {
+    this._facility = facility;
   }
 
   public get userRole(): UserRole {

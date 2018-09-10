@@ -9,24 +9,14 @@
           <clr-dg-column>Email</clr-dg-column>
           <clr-dg-column>Phone</clr-dg-column>
           <clr-dg-column>Role</clr-dg-column>
-          <clr-dg-column>Edit</clr-dg-column>
-          <clr-dg-column>Delete</clr-dg-column>
+
           <clr-dg-row *ngFor="let user of users" [clrDgItem]="user">
             <clr-dg-cell>{{user.first}}</clr-dg-cell>
             <clr-dg-cell>{{user.last}}</clr-dg-cell>
             <clr-dg-cell>{{user.email}}</clr-dg-cell>
             <clr-dg-cell>{{user.phone}}</clr-dg-cell>
             <clr-dg-cell>{{user.roleName}}</clr-dg-cell>
-            <clr-dg-cell>
-              <a (click)="edit(user)">
-                <clr-icon shape="pencil" class="is-solid"></clr-icon>
-              </a>
-            </clr-dg-cell>
-            <clr-dg-cell>
-              <a ref (click)="confirmDelete(user)">
-                <clr-icon shape="trash" class="is-solid"></clr-icon>
-              </a>
-            </clr-dg-cell>
+
           </clr-dg-row>
 
           <clr-dg-footer>
@@ -38,27 +28,31 @@
         </clr-datagrid>
       </div>
       <div class="card-block">
+        <button class="btn btn-primary" (click)="add()">
+          <clr-icon shape="plus"></clr-icon>Add New
+        </button>
+        <button class="btn btn-secondary" (click)="edit()" [disabled]="selected.length===0 || selected.length > 1">
+          <clr-icon shape="pencil"></clr-icon>Edit
+        </button>
+        <button class="btn btn-secondary" (click)="confirmDelete()" [disabled]="selected.length===0 || selected.length > 1">
+          <clr-icon shape="trash"></clr-icon>Delete
+        </button>
         <button class="btn btn-secondary" (click)="email()" [disabled]="selected.length===0">
           <clr-icon shape="envelope"></clr-icon>Email Selected
         </button>
-        <button class="btn btn-primary" (click)="add()">
-            <clr-icon shape="plus"></clr-icon>Add New
-          </button>
       </div>
     </div>
   </div>
 </div>
-<app-mailer [showEmailer]="popupEmail" [toList]="userList"></app-mailer>
+<app-mailer [showEmailer]="popupEmail" [toList]="userList" (close)="onClose($event)"></app-mailer>
 <clr-modal [(clrModalOpen)]="showDeleteConf">
   <h3 class="modal-title">Confirm Deletion</h3>
   <div class="modal-body">
     <p>Are you sure you want to delete?</p>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-warning" (click)="onDelete()">Delete</button>
+    <button type="button" class="btn btn-warning" (click)="delete()">Delete</button>
     <button type="button" class="btn btn-outline" (click)="showDeleteConf = false">Cancel</button>
 
   </div>
 </clr-modal>
-
-

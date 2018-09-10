@@ -22,6 +22,7 @@ import { UserDetailModule } from './components/user-detail/user-detail.module';
 import { MailerModule } from './components/mailer/mailer.module';
 
 
+
 export function tokenGetter() {
   return localStorage.getItem('access_token');
 }
@@ -35,6 +36,7 @@ export function tokenGetter() {
     HeaderComponent,
     PageNotFoundComponent,
     RegistrationFormComponent,
+
 
   ],
   imports: [

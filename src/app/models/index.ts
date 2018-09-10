@@ -7,3 +7,4 @@ export * from './registerUser';
 export * from './eventActionDetail';
 export * from './apiMessage';
 export * from './email';
+export * from './page';

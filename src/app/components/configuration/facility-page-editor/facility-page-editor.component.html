@@ -1,0 +1,45 @@
+<div class="container">
+  <div *ngIf="isRequesting">Loading User List ...</div>
+  <div *ngIf="!isRequesting">
+
+    <quill-editor [style]="{height: '100%'}" [required]="true" (onContentChanged)="contentChanged($event)">
+    </quill-editor>
+    <button type="submit" class="btn btn-primary" (click)="editDetails()">Edit Details</button>
+    <clr-modal [(clrModalOpen)]="showDetails">
+      <h3 class="modal-title">Send Mail</h3>
+      <div class="modal-body">
+        <form clrForm clrLayout="horizontal" [formGroup]="pageForm" novalidate>
+          <clr-input-container>
+            <label>Page Name</label>
+            <input clrInput type="text" formControlName="name" required />
+            <clr-control-error *clrIfError="'required'">A from address is required.</clr-control-error>
+          </clr-input-container>
+          <clr-input-container>
+            <label>Description</label>
+            <input clrInput type="text" formControlName="desc" required />
+            <clr-control-error *clrIfError="'required'">A description is required.</clr-control-error>
+          </clr-input-container>
+          <clr-input-container>
+            <label>Valid Thru Date</label>
+            <input clrInput type="date" formControlName="endDate" required />
+            <clr-control-error *clrIfError="'required'">An end date is required</clr-control-error>
+          </clr-input-container>
+          <clr-input-container>
+            <label>Sort Order</label>
+            <input clrInput type="date" formControlName="order" required />
+            <clr-control-error *clrIfError="'required'">An Sort Order is required</clr-control-error>
+          </clr-input-container>
+         <!--  <div class="toggle-switch">
+            <input type="checkBox" id="published" formControlName="published" />
+            <label for="published">Publish</label>
+          </div> -->
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="close()">Cancel</button>
+        <button type="submit" class="btn btn-primary" (click)="submit()" [disabled]="pageForm.invalid">Send</button>
+      </div>
+    </clr-modal>
+
+  </div>
+</div>
